@@ -23,9 +23,13 @@ $app = new Laravel\Lumen\Application(
     dirname(__DIR__)
 );
 
-// $app->withFacades();
+$app->withFacades(true, [
+  'Firebase\JWT\JWT' => 'JWTFirebase',
+  'App\Http\Support\JWT' => 'JWT',
+  'App\Http\Support\Response' => 'Res',
+]);
 
-// $app->withEloquent();
+$app->withEloquent();
 
 /*
 |--------------------------------------------------------------------------
@@ -63,9 +67,10 @@ $app->singleton(
 //     App\Http\Middleware\ExampleMiddleware::class
 // ]);
 
-// $app->routeMiddleware([
-//     'auth' => App\Http\Middleware\Authenticate::class,
-// ]);
+$app->routeMiddleware([
+    // 'auth' => App\Http\Middleware\Authenticate::class,
+    'jwt' => App\Http\Middleware\JWTAuth::class,
+]);
 
 /*
 |--------------------------------------------------------------------------
