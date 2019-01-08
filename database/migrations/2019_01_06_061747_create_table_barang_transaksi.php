@@ -28,7 +28,8 @@ class CreateTableBarangTransaksi extends Migration
             $table->integer('saldo_kg')->default(0);
             $table->integer('harga_rata')->default(0);
 
-            $table->foreign('barang_id')->references('id')->on('barang');
+            $table->foreign('barang_id')->references('id')->on('barang')
+                  ->onDelete('cascade')->onUpdate('cascade');
         });
     }
 
