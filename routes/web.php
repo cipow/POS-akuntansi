@@ -23,6 +23,8 @@ $router->group(['middleware' => 'jwt'], function($router) {
     $router->get('/', 'Barang@listBarang');
     $router->post('/', 'Barang@tambahBarang');
     $router->get('/{id}', 'Barang@detailBarang');
+    $router->put('/{id}', 'Barang@editBarang');
+    $router->delete('/{id}', 'Barang@hapusBarang');
   });
 
   $router->group(['prefix' => '/pemasok'], function($router) {

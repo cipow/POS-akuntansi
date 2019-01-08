@@ -11,22 +11,22 @@ class Barang extends Controller {
 
   private $user;
 
+  private $rule = [
+    'nama' => 'required|string|max:100',
+    'stok_minimal' => 'required|integer'
+  ];
+
   public function __construct(Request $req){
     parent::__construct();
     $this->user = $req->user;
   }
 
   public function listBarang() {
-    return $this->response->data(BarangModel::all());
+    return $this->response->data(BarangModel::orderBy('tanggal', 'desc')->get());
   }
 
   public function tambahBarang(Request $req) {
-    $rule = [
-      'nama' => 'required|string|max:100',
-      'stok_minimal' => 'required|integer'
-    ];
-
-    if ($invalid = $this->response->validate($req, $rule)) return $invalid;
+    if ($invalid = $this->response->validate($req, $this->rule)) return $invalid;
 
     try {
       $req->merge(['tanggal' => Carbon::now()]);
@@ -48,6 +48,36 @@ class Barang extends Controller {
       return $this->response->serverError();
     }
 
+  }
+
+  public function editBarang(Request $req, $id) {
+    if ($invalid = $this->response->validate($req, $this->rule)) return $invalid;
+
+    try {
+      $barang = BarangModel::findOrFail($id);
+      $barang->update($req->all());
+      return $this->response->data($barang);
+    } catch (Exception $e) {
+      if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException)
+        return $this->response->messageError('Barang tidak ditemukan', 404);
+
+      return $this->response->serverError();
+    }
+
+  }
+
+  public function hapusBarang($id) {
+    try {
+      $barang = BarangModel::findOrFail($id);
+      $namaBarang = $barang->nama;
+      $barang->delete();
+      return $this->response->messageSuccess($namaBarang.' berhasil dihapus', 202);
+    } catch (Exception $e) {
+      if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException)
+        return $this->response->messageError('Barang tidak ditemukan', 404);
+
+      return $this->response->serverError();
+    }
   }
 
 }
