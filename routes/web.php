@@ -17,3 +17,13 @@ $router->get('/', function () use ($router) {
 
 $router->post('/login', 'Sign@in');
 $router->post('/register', 'Sign@up');
+
+$router->group(['middleware' => 'jwt'], function($router) {
+  $router->group(['prefix' => '/barang'], function($router) {
+    $router->get('/', 'Barang@listBarang');
+    $router->post('/', 'Barang@tambahBarang');
+    $router->get('/{id}', 'Barang@detailBarang');
+  });
+
+
+});
