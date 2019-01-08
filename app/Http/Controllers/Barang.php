@@ -66,18 +66,18 @@ class Barang extends Controller {
 
   }
 
-  public function hapusBarang($id) {
-    try {
-      $barang = BarangModel::findOrFail($id);
-      $namaBarang = $barang->nama;
-      $barang->delete();
-      return $this->response->messageSuccess($namaBarang.' berhasil dihapus', 202);
-    } catch (Exception $e) {
-      if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException)
-        return $this->response->messageError('Barang tidak ditemukan', 404);
-
-      return $this->response->serverError();
-    }
-  }
+  // public function hapusBarang($id) {
+  //   try {
+  //     $barang = BarangModel::findOrFail($id);
+  //     $namaBarang = $barang->nama;
+  //     $barang->delete();
+  //     return $this->response->messageSuccess($namaBarang.' berhasil dihapus', 202);
+  //   } catch (Exception $e) {
+  //     if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException)
+  //       return $this->response->messageError('Barang tidak ditemukan', 404);
+  //
+  //     return $this->response->serverError();
+  //   }
+  // }
 
 }
