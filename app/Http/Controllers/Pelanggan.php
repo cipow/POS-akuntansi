@@ -11,6 +11,13 @@ class Pelanggan extends Controller {
 
   private $user;
 
+  private $rule = [
+    'nama' => 'required|string|max:100',
+    'email' => 'string|email|max:100',
+    'telepon' => 'required|string|max:20',
+    'alamat' => 'string',
+  ];
+
   public function __construct(Request $req){
     parent::__construct();
     $this->user = $req->user;
@@ -21,14 +28,7 @@ class Pelanggan extends Controller {
   }
 
   public function tambahPelanggan(Request $req) {
-    $rule = [
-      'nama' => 'required|string|max:100',
-      'email' => 'string|email|max:100',
-      'telepon' => 'required|string|max:20',
-      'alamat' => 'string',
-    ];
-
-    if ($invalid = $this->response->validate($req, $rule)) return $invalid;
+    if ($invalid = $this->response->validate($req, $this->rule)) return $invalid;
 
     try {
       $pelanggan = PelangganModel::create($req->all());
@@ -48,7 +48,21 @@ class Pelanggan extends Controller {
 
       return $this->response->serverError();
     }
+  }
 
+  public function editPelanggan(Request $req, $id) {
+    if ($invalid = $this->response->validate($req, $this->rule)) return $invalid;
+
+    try {
+      $pelanggan = PelangganModel::findOrFail($id);
+      $pelanggan->update($req->all());
+      return $this->response->data($pelanggan);
+    } catch (Exception $e) {
+      if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException)
+        return $this->response->messageError('Pelanggan tidak ditemukan', 404);
+
+      return $this->response->serverError();
+    }
   }
 
 }

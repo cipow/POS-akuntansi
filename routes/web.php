@@ -31,12 +31,14 @@ $router->group(['middleware' => 'jwt'], function($router) {
     $router->get('/', 'Pemasok@listPemasok');
     $router->post('/', 'Pemasok@tambahPemasok');
     $router->get('/{id}', 'Pemasok@detailPemasok');
+    $router->put('/{id}', 'Pemasok@editPemasok');
   });
 
   $router->group(['prefix' => '/pelanggan'], function($router) {
     $router->get('/', 'Pelanggan@listPelanggan');
     $router->post('/', 'Pelanggan@tambahPelanggan');
     $router->get('/{id}', 'Pelanggan@detailPelanggan');
+    $router->put('/{id}', 'Pelanggan@editPelanggan');
   });
 
 
