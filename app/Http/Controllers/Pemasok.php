@@ -25,6 +25,7 @@ class Pemasok extends Controller {
       'nama' => 'required|string|max:100',
       'email' => 'string|email|max:100',
       'telepon' => 'required|string|max:20',
+      'alamat' => 'string',
       'bank' => 'string|max:100',
       'no_rekening' => 'string|max:100',
       'an_rekening' => 'string|max:100',
