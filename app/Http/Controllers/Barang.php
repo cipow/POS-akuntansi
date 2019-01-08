@@ -22,7 +22,7 @@ class Barang extends Controller {
 
   public function tambahBarang(Request $req) {
     $rule = [
-      'nama' => 'required|string|max:191',
+      'nama' => 'required|string|max:100',
       'stok_minimal' => 'required|integer'
     ];
 
