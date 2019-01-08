@@ -16,7 +16,7 @@ class CreateTableBarangTransaksi extends Migration
         Schema::create('barang__transaksi', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('barang_id');
-            $table->timestamp('tanggal');
+            $table->timestamp('tanggal')->nullable();
             $table->string('nofaktur_pembelian', 100)->nullable();
             $table->string('nofaktur_penjualan', 100)->nullable();
             $table->integer('masuk_kg')->default(0);

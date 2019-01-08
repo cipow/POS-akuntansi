@@ -19,7 +19,7 @@ class CreateTableBarang extends Migration
             $table->integer('stok')->default(0);
             $table->integer('stok_minimal');
             $table->integer('harga_rata')->default(0);
-            $table->timestamp('tanggal');
+            $table->timestamp('tanggal')->nullable();
         });
     }
 
