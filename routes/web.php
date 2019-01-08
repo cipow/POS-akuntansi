@@ -31,5 +31,11 @@ $router->group(['middleware' => 'jwt'], function($router) {
     $router->get('/{id}', 'Pemasok@detailPemasok');
   });
 
+  $router->group(['prefix' => '/pelanggan'], function($router) {
+    $router->get('/', 'Pelanggan@listPelanggan');
+    $router->post('/', 'Pelanggan@tambahPelanggan');
+    $router->get('/{id}', 'Pelanggan@detailPelanggan');
+  });
+
 
 });
