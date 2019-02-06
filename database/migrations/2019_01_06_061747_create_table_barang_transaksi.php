@@ -19,14 +19,15 @@ class CreateTableBarangTransaksi extends Migration
             $table->timestamp('tanggal')->nullable();
             $table->string('nofaktur_pembelian', 100)->nullable();
             $table->string('nofaktur_penjualan', 100)->nullable();
-            $table->integer('masuk_kg')->default(0);
-            $table->integer('harga_beli')->default(0);
-            $table->integer('total_pembelian')->default(0);
-            $table->integer('keluar_kg')->default(0);
-            $table->integer('harga_jual')->default(0);
-            $table->integer('total_penjualan')->default(0);
-            $table->integer('saldo_kg')->default(0);
-            $table->integer('harga_rata')->default(0);
+            $table->bigInteger('masuk_kg')->default(0);
+            $table->bigInteger('harga_beli')->default(0);
+            $table->bigInteger('total_pembelian')->default(0);
+            $table->bigInteger('keluar_kg')->default(0);
+            $table->bigInteger('harga_jual')->default(0);
+            $table->bigInteger('total_penjualan')->default(0);
+            $table->bigInteger('saldo_kg')->default(0);
+            $table->bigInteger('harga_rata')->default(0);
+            $table->bigInteger('saldo_rp')->default(0);
 
             $table->foreign('barang_id')->references('id')->on('barang')
                   ->onDelete('cascade')->onUpdate('cascade');
