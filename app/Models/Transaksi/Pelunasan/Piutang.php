@@ -10,6 +10,8 @@ class Piutang extends Model {
 
   protected $guarded = ['id'];
 
+  protected $hidden = ['penjualan_id'];
+
   public $timestamps = false;
 
   public function piutang() {

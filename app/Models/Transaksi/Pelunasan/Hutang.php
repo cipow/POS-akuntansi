@@ -10,6 +10,8 @@ class Hutang extends Model {
 
   protected $guarded = ['id'];
 
+  protected $hidden = ['pembelian_id'];
+
   public $timestamps = false;
 
   public function pembelian() {
