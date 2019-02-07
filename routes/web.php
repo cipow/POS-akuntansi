@@ -25,6 +25,14 @@ $router->group(['middleware' => 'jwt'], function($router) {
     $router->get('/{id}', 'Barang@detailBarang');
     $router->put('/{id}', 'Barang@editBarang');
     // $router->delete('/{id}', 'Barang@hapusBarang');
+
+    $router->post('/{id}/pembelian', 'Pembelian@add');
+    $router->get('/{id}/pembelian', 'Pembelian@listPembelian');
+    $router->get('/{id}/pembelian/{pembelian_id}', 'Pembelian@getPembelian');
+    $router->post('/{id}/pembelian/{pembelian_id}', 'Pembelian@pelunasan');
+    $router->delete('/{id}/pembelian/{pembelian_id}/{hutang_id}', 'Pembelian@hapusPelunasan');
+
+
   });
 
   $router->group(['prefix' => '/pemasok'], function($router) {
