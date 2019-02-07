@@ -12,6 +12,7 @@ class Barang extends Controller {
   private $user;
 
   private $rule = [
+    'kode' => 'required|string',
     'nama' => 'required|string|max:100',
     'stok_minimal' => 'required|integer'
   ];
@@ -29,6 +30,9 @@ class Barang extends Controller {
     if ($invalid = $this->response->validate($req, $this->rule)) return $invalid;
 
     try {
+      $barang_sama = BarangModel::where('kode', $req->kode)->first();
+      if ($barang_sama) return $this->response->messageError('Kode sudah digunakan', 403);
+      
       $req->merge(['tanggal' => Carbon::now()]);
       $barang = BarangModel::create($req->all());
       return $this->response->data(BarangModel::find($barang->id));
@@ -55,6 +59,10 @@ class Barang extends Controller {
 
     try {
       $barang = BarangModel::findOrFail($id);
+      if ($barang->kode != $req->kode) {
+        $barang_sama = BarangModel::where('kode', $req->kode)->first();
+        if ($barang_sama) return $this->response->messageError('Kode sudah digunakan', 403);
+      }
       $barang->update($req->all());
       return $this->response->data($barang);
     } catch (Exception $e) {
