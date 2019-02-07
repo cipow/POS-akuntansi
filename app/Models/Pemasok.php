@@ -11,4 +11,8 @@ class Pemasok extends Model {
   protected $fillable = [
     'nama', 'email', 'telepon', 'alamat', 'bank', 'no_rekening', 'an_rekening'
   ];
+
+  public function pembelian() {
+    return $this->hasMany('App\Models\Transaksi\Pembelian', 'pemasok_id');
+  }
 }

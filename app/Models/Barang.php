@@ -8,7 +8,11 @@ class Barang extends Model {
 
   protected $table = 'barang';
 
-  protected $fillable = ['nama', 'stok', 'stok_minimal', 'harga_rata', 'tanggal'];
+  protected $fillable = ['kode', 'nama', 'stok', 'stok_minimal', 'harga_rata', 'tanggal'];
 
   public $timestamps = false;
+
+  public function transaksi() {
+    return $this->hasMany('App\Models\Transaksi\Transaksi', 'barang_id');
+  }
 }

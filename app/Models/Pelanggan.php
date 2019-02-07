@@ -9,4 +9,8 @@ class Pelanggan extends Model {
   protected $table = 'barang__pelanggan';
 
   protected $fillable = ['nama', 'email', 'telepon', 'alamat'];
+
+  public function penjualan() {
+    return $this->hasMany('App\Models\Transaksi\Penjualan', 'pelanggan_id');
+  }
 }
