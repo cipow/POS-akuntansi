@@ -113,7 +113,7 @@ class Pembelian extends Controller {
     if ($invalid = $this->response->validate($req, $this->rulePelunasan)) return $invalid;
 
     try {
-      $pembelian = Barang::findOrFail($barang_id)->transaksi()->findOrFail($id)->pembelian;
+      $pembelian = Barang::findOrFail($barang_id)->transaksi()->has('pembelian')->findOrFail($id)->pembelian;
       if ($pembelian->total_hutang < $req->nilai) return $this->response->messageError('Kelebihan Nilai', 403);
       $pelunasan = $pembelian->hutang()->create([
         'tanggal' => $req->tanggal,

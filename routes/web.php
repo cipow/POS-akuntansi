@@ -26,12 +26,21 @@ $router->group(['middleware' => 'jwt'], function($router) {
     $router->put('/{id}', 'Barang@editBarang');
     // $router->delete('/{id}', 'Barang@hapusBarang');
 
-    $router->post('/{id}/pembelian', 'Pembelian@add');
-    $router->get('/{id}/pembelian', 'Pembelian@listPembelian');
-    $router->get('/{id}/pembelian/{pembelian_id}', 'Pembelian@getPembelian');
-    $router->post('/{id}/pembelian/{pembelian_id}', 'Pembelian@pelunasan');
-    $router->delete('/{id}/pembelian/{pembelian_id}/{hutang_id}', 'Pembelian@hapusPelunasan');
+    $router->group(['prefix' => '{id}/pembelian'], function($router) {
+      $router->post('/', 'Pembelian@add');
+      $router->get('/', 'Pembelian@listPembelian');
+      $router->get('/{pembelian_id}', 'Pembelian@getPembelian');
+      $router->post('/{pembelian_id}', 'Pembelian@pelunasan');
+      $router->delete('/{pembelian_id}/{hutang_id}', 'Pembelian@hapusPelunasan');
+    });
 
+    $router->group(['prefix' => '{id}/penjualan'], function($router) {
+      $router->post('/', 'Penjualan@add');
+      $router->get('/', 'Penjualan@listPenjualan');
+      $router->get('/{penjualan_id}', 'Penjualan@getPenjualan');
+      $router->post('/{penjualan_id}', 'Penjualan@pembayaran');
+      $router->delete('/{penjualan_id}/{piutang_id}', 'Penjualan@hapusPembayaran');
+    });
 
   });
 
