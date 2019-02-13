@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateTablePelunasanHutang extends Migration
+class CreateTableTransaksiPelunasan extends Migration
 {
     /**
      * Run the migrations.
@@ -13,18 +13,18 @@ class CreateTablePelunasanHutang extends Migration
      */
     public function up()
     {
-        Schema::create('barang__pelunasan_hutang', function (Blueprint $table) {
+        Schema::create('transaksi__pelunasan', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedInteger('pembelian_id');
+            $table->unsignedInteger('transaksi_id');
             $table->timestamp('tanggal')->nullable();
             $table->bigInteger('nilai');
-            $table->text('keterangan')->nullable();
             $table->bigInteger('debit')->default(0);
             $table->bigInteger('kredit')->default(0);
             $table->bigInteger('saldo')->default(0);
+            $table->text('keterangan')->nullable();
             // $table->timestamps();
 
-            $table->foreign('pembelian_id')->references('id')->on('barang__transaksi_pembelian')->onDelete('cascade')->onDelete('cascade');
+            $table->foreign('transaksi_id')->references('id')->on('transaksi')->onUpdate('cascade')->onDelete('cascade');
         });
     }
 
@@ -35,6 +35,6 @@ class CreateTablePelunasanHutang extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('barang__pelunasan_hutang');
+        Schema::dropIfExists('transaksi__pelunasan');
     }
 }

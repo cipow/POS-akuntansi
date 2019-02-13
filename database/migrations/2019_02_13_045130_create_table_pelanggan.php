@@ -13,10 +13,10 @@ class CreateTablePelanggan extends Migration
      */
     public function up()
     {
-        Schema::create('barang__pelanggan', function (Blueprint $table) {
+        Schema::create('pelanggan', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('nama', 100)->nullable();
-            $table->text('alamat')->nullable();
+            $table->string('nama', 100);
+            $table->text('alamat');
             $table->string('telepon', 100)->nullable();
             $table->string('email', 100)->nullable();
             $table->timestamps();
@@ -30,6 +30,6 @@ class CreateTablePelanggan extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('barang__pelanggan');
+        Schema::dropIfExists('pelanggan');
     }
 }

@@ -13,10 +13,10 @@ class CreateTablePemasok extends Migration
      */
     public function up()
     {
-        Schema::create('barang__pemasok', function (Blueprint $table) {
+        Schema::create('pemasok', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('nama', 100)->nullable();
-            $table->text('alamat')->nullable();
+            $table->string('nama', 100);
+            $table->text('alamat');
             $table->string('telepon', 100)->nullable();
             $table->string('email', 100)->nullable();
             $table->string('bank', 100)->nullable();
@@ -33,6 +33,6 @@ class CreateTablePemasok extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('barang__pemasok');
+        Schema::dropIfExists('pemasok');
     }
 }
