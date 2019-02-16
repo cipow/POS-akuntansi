@@ -26,22 +26,6 @@ $router->group(['middleware' => 'jwt'], function($router) {
     $router->put('/{id}', 'Barang@editBarang');
     // $router->delete('/{id}', 'Barang@hapusBarang');
 
-    $router->group(['prefix' => '{id}/pembelian'], function($router) {
-      $router->post('/', 'Pembelian@add');
-      $router->get('/', 'Pembelian@listPembelian');
-      $router->get('/{pembelian_id}', 'Pembelian@getPembelian');
-      $router->post('/{pembelian_id}', 'Pembelian@pelunasan');
-      $router->delete('/{pembelian_id}/{hutang_id}', 'Pembelian@hapusPelunasan');
-    });
-
-    $router->group(['prefix' => '{id}/penjualan'], function($router) {
-      $router->post('/', 'Penjualan@add');
-      $router->get('/', 'Penjualan@listPenjualan');
-      $router->get('/{penjualan_id}', 'Penjualan@getPenjualan');
-      $router->post('/{penjualan_id}', 'Penjualan@pembayaran');
-      $router->delete('/{penjualan_id}/{piutang_id}', 'Penjualan@hapusPembayaran');
-    });
-
   });
 
   $router->group(['prefix' => '/pemasok'], function($router) {
@@ -58,5 +42,12 @@ $router->group(['middleware' => 'jwt'], function($router) {
     $router->put('/{id}', 'Pelanggan@editPelanggan');
   });
 
+  $router->group(['prefix' => '/transaksi'], function($router) {
+    $router->get('/', 'Transaksi\Transaksi@daftarTransaksi');
+    $router->post('/beli', 'Transaksi\Transaksi@beli');
+    $router->post('/jual', 'Transaksi\Transaksi@jual');
+    $router->get('/{id}', 'Transaksi\Transaksi@dataTransaksi');
+    $router->post('/{id}/pelunasan', 'Transaksi\Transaksi@pelunasan');
+  });
 
 });

@@ -13,6 +13,6 @@ class Barang extends Model {
   public $timestamps = false;
 
   public function transaksi() {
-    return $this->hasMany('App\Models\Transaksi\Transaksi', 'barang_id');
+    return $this->hasMany('App\Models\Transaksi\BarangTransaksi', 'barang_id');
   }
 }

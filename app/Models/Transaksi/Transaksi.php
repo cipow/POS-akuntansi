@@ -6,25 +6,28 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transaksi extends Model {
 
-  protected $table = 'barang__transaksi';
+  protected $table = 'transaksi';
 
   protected $guarded = ['id'];
 
-  protected $hidden = ['barang_id'];
+  protected $hidden = ['pelanggan_id', 'pemasok_id'];
 
   public $timestamps = false;
 
+  public function pemasok() {
+    return $this->belongsTo('App\Models\Pemasok', 'pemasok_id');
+  }
+
+  public function pelanggan() {
+    return $this->belongsTo('App\Models\Pelanggan', 'pelanggan_id');
+  }
+
   public function barang() {
-    return $this->belongsTo('App\Models\Barang', 'barang_id');
+    return $this->hasMany('App\Models\Transaksi\BarangTransaksi', 'transaksi_id');
   }
 
-  public function pembelian() {
-    return $this->hasOne('App\Models\Transaksi\Pembelian', 'transaksi_id');
+  public function pelunasan() {
+    return $this->hasMany('App\Models\Transaksi\TransaksiPelunasan', 'transaksi_id');
   }
-
-  public function penjualan() {
-    return $this->hasOne('App\Models\Transaksi\Penjualan', 'transaksi_id');
-  }
-
 
 }

@@ -6,13 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pemasok extends Model {
 
-  protected $table = 'barang__pemasok';
+  protected $table = 'pemasok';
 
   protected $fillable = [
     'nama', 'email', 'telepon', 'alamat', 'bank', 'no_rekening', 'an_rekening'
   ];
 
-  public function pembelian() {
-    return $this->hasMany('App\Models\Transaksi\Pembelian', 'pemasok_id');
+  public function transaksi() {
+    return $this->hasMany('App\Models\Transaksi\Transaksi', 'pemasok_id');
   }
 }
