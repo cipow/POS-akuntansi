@@ -12,7 +12,7 @@ class Barang extends Model {
 
   public $timestamps = false;
 
-  public function transaksi() {
+  public function barangTransaksi() {
     return $this->hasMany('App\Models\Transaksi\BarangTransaksi', 'barang_id');
   }
 }

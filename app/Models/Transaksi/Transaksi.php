@@ -22,7 +22,7 @@ class Transaksi extends Model {
     return $this->belongsTo('App\Models\Pelanggan', 'pelanggan_id');
   }
 
-  public function barang() {
+  public function barangTransaksi() {
     return $this->hasMany('App\Models\Transaksi\BarangTransaksi', 'transaksi_id');
   }
 
