@@ -58,63 +58,58 @@ class Transaksi extends Controller {
   }
 
   public function dataTransaksi($id) {
-    return $this->response->data(TransaksiModel::with(['pemasok', 'pelanggan', 'barang.barang', 'pelunasan'])->find($id));
+    return $this->response->data(TransaksiModel::with(['pemasok', 'pelanggan', 'barangTransaksi.barang', 'pelunasan'])->find($id));
+  }
+
+  private function transaksi(Request $req, $user_lain, $jenis) {
+    if (!$user_lain) {
+      $tipeUser = ($jenis == 'B') ? 'Pemasok':'Pelanggan';
+      return $this->response->messageError("$tipeUser tidak ada", 404);
+    }
+
+    $tanggal = Carbon::now();
+    $transaksi = ModulTransaksi::buatTransaksi($jenis, $req, $tanggal);
+    $total = ModulTransaksi::totalTransaksiBarang($jenis, $transaksi->id, $req->barang);
+    $hutang = $total;
+
+    if ($total == 0) {
+      $transaksi->delete();
+      return $this->response->messageError('Total transaksi 0, transaksi dihapus.', 403);
+    }
+
+    if ($req->lunas) {
+      $dataPelunasan = [
+        'tanggal' => $tanggal,
+        'nilai' => $total
+      ];
+      if ($jenis == 'B') $dataPelunasan['debit'] = $total;
+      else $dataPelunasan['kredit'] = $total;
+      $transaksi->pelunasan()->create($dataPelunasan);
+      $hutang = 0;
+    }
+
+    $dataTambahan = [
+      'total' => $total,
+      'ph_utang' => $hutang,
+      'beban_angkut' => $req->beban_angkut
+    ];
+    if ($jenis == 'B') $dataTambahan['pemasok_id'] = $user_lain->id;
+    else $dataTambahan['pelanggan_id'] = $user_lain->id;
+    $transaksi->update($dataTambahan);
+
+    return $this->response->data($transaksi);
   }
 
   public function beli(Request $req) {
     if ($invalid = $this->response->validate($req, $this->rulePembelian)) return $invalid;
     $pemasok = Pemasok::find($req->pemasok_id);
-    if (!$pemasok) return $this->response->messageError('Pemasok tidak ada', 404);
-    $tanggal = Carbon::now();
-    $transaksi = ModulTransaksi::buatTransaksi('B', $req, $tanggal);
-    $total = ModulTransaksi::totalTransaksiBarang('B', $transaksi->id, $req->barang);
-    $hutang = $total;
-
-    if ($req->lunas) {
-      $transaksi->pelunasan()->create([
-        'tanggal' => $tanggal,
-        'nilai' => $total,
-        'debit' => $total
-      ]);
-      $hutang = 0;
-    }
-
-    $transaksi->update([
-      'pemasok_id' => $pemasok->id,
-      'total' => $total,
-      'ph_utang' => $hutang,
-      'beban_angkut' => $req->beban_angkut
-    ]);
-
-    return $this->response->data($transaksi);
+    return $this->transaksi($req, $pemasok, 'B');
   }
 
   public function jual(Request $req) {
     if ($invalid = $this->response->validate($req, $this->rulePenjualan)) return $invalid;
     $pelanggan = Pelanggan::find($req->pelanggan_id);
-    if (!$pelanggan) return $this->response->messageError('Pelanggan tidak ada', 404);
-    $tanggal = Carbon::now();
-    $transaksi = ModulTransaksi::buatTransaksi('J', $req, $tanggal);
-    $total = ModulTransaksi::totalTransaksiBarang('J', $transaksi->id, $req->barang);
-    $hutang = $total;
-
-    if ($req->lunas) {
-      $transaksi->pelunasan()->create([
-        'tanggal' => $tanggal,
-        'nilai' => $total,
-        'kredit' => $total
-      ]);
-      $hutang = 0;
-    }
-
-    $transaksi->update([
-      'pelanggan_id' => $pelanggan->id,
-      'total' => $total,
-      'ph_utang' => $hutang,
-      'beban_angkut' => $req->beban_angkut
-    ]);
-
-    return $this->response->data($transaksi);
+    return $this->transaksi($req, $pelanggan, 'J');
   }
 
   public function pelunasan(Request $req, $id) {

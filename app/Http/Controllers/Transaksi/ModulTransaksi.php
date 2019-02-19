@@ -28,7 +28,8 @@ class ModulTransaksi extends Controller {
     foreach ($barangs as $barang) {
       $barang = (object) $barang;
       $dataBarang = Barang::find($barang->id);
-      if ($dataBarang && $dataBarang->stok > 0) {
+      if ($dataBarang) {
+        if ($jenis == 'J' && $dataBarang->stok <= 0) continue;
         if ($jenis == 'B') {
           if ($dataBarang->harga_rata == 0) $harga_rata = $barang->harga;
           else $harga_rata = ceil((($dataBarang->stok * $dataBarang->harga_rata) + ($barang->jumlah * $barang->harga)) / ($dataBarang->stok + $barang->jumlah));
@@ -41,7 +42,7 @@ class ModulTransaksi extends Controller {
         $total = $total + $total_harga_barang;
 
         $dataBarang->update(['stok' => $saldo_kg, 'harga_rata' => $harga_rata]);
-        $dataBarang->transaksi()->create([
+        $dataBarang->barangTransaksi()->create([
           'transaksi_id' => $transaksi_id,
           'kg' => $barang->jumlah,
           'harga' => $barang->harga,
