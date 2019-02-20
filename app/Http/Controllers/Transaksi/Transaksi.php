@@ -97,7 +97,7 @@ class Transaksi extends Controller {
     else $dataTambahan['pelanggan_id'] = $user_lain->id;
     $transaksi->update($dataTambahan);
 
-    return $this->response->data($transaksi);
+    return $this->response->data(TransaksiModel::with(['pemasok', 'pelanggan'])->find($transaksi->id));
   }
 
   public function beli(Request $req) {
