@@ -14,6 +14,18 @@ class BarangTransaksi extends Model {
 
   public $timestamps = false;
 
+  public function scopeTransaksiTanggal($q, $tanggal) {
+    return $q->whereHas('transaksi', function($qu) use ($tanggal) {
+      $qu->bulanTahun($tanggal);
+    });
+  }
+
+  public function scopeTransaksiTanggalSebelumnya($q, $tanggal) {
+    return $q->whereHas('transaksi', function($qu) use ($tanggal) {
+      $qu->bulanTahunSebelumnya($tanggal);
+    });
+  }
+
   public function barang() {
     return $this->belongsTo('App\Models\Barang', 'barang_id');
   }

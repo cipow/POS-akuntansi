@@ -50,4 +50,9 @@ $router->group(['middleware' => 'jwt'], function($router) {
     $router->post('/{id}/pelunasan', 'Transaksi\Transaksi@pelunasan');
   });
 
+  $router->group(['prefix' => '/laporan'], function($router) {
+    $router->get('/bulanan', 'Transaksi\Laporan@laporanBulanan');
+    $router->post('/bulanan', 'Transaksi\Laporan@simpanLaporanBulanan');
+  });
+
 });

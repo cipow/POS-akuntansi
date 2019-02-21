@@ -14,6 +14,18 @@ class Transaksi extends Model {
 
   public $timestamps = false;
 
+  public function scopeLaporanTransaksi($q, $tanggal, $jenis) {
+    return $q->bulanTahun($tanggal)->where('jenis', $jenis);
+  }
+
+  public function scopeBulanTahun($q, $tanggal) {
+    return $q->whereYear('tanggal', $tanggal->year)->whereMonth('tanggal', $tanggal->month);
+  }
+
+  public function scopeBulanTahunSebelumnya($q, $tanggal) {
+    return $q->whereYear('tanggal', $tanggal->year)->whereMonth('tanggal', '<', $tanggal->month);
+  }
+
   public function pemasok() {
     return $this->belongsTo('App\Models\Pemasok', 'pemasok_id');
   }
