@@ -19,6 +19,8 @@ $router->post('/login', 'Sign@in');
 $router->post('/register', 'Sign@up');
 
 $router->group(['middleware' => 'jwt'], function($router) {
+  $router->get('/profil', 'Profil@index');
+
   $router->group(['prefix' => '/barang'], function($router) {
     $router->get('/', 'Barang@listBarang');
     $router->post('/', 'Barang@tambahBarang');
