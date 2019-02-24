@@ -13,7 +13,7 @@ class Bulanan extends Model {
   public $timestamps = false;
 
   public function scopeBulanTahun($q, $tanggal) {
-    return $q->whereYear('tanggal', $tanggal->year)->whereMonth('tanggal', $tanggal->month);
+    return $q->whereYear('tanggal_laporan', $tanggal->year)->whereMonth('tanggal_laporan', $tanggal->month);
   }
 
 }
