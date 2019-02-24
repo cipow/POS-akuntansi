@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Barang;
 use App\Models\Transaksi\Transaksi;
+use App\Models\Laporan\Bulanan;
 use Carbon\Carbon;
 
 class Laporan extends Controller {
@@ -28,6 +29,32 @@ class Laporan extends Controller {
   public function __construct(Request $req){
     parent::__construct();
     $this->user = $req->user;
+  }
+
+  public function dataLaporan(Request $req) {
+    $rule = [
+      'jenis' => 'string|in:bulan,tahun',
+      'tanggal' => 'date'
+    ];
+    if ($invalid = $this->response->validate($req, $rule)) return $invalid;
+    $tanggal = new Carbon($req->tanggal);
+    $data['meta'] = $req->query();
+    unset($data['meta']['user']);
+
+    if ($req->filled('jenis')) {
+      if ($req->jenis == 'bulan') {
+        $data['bulan'] = Bulanan::when($req->filled('tanggal'), function($q) use ($tanggal) {
+          $q->bulanTahun($tanggal);
+        })->orderBy('tanggal', 'desc')->get();
+      } else {
+
+      }
+    } else {
+      $data['bulan'] = Bulanan::orderBy('tanggal', 'desc')->get();
+      $data['tahun'] = NULL;
+    }
+
+    return $this->response->data($data);
   }
 
   private function persediaan(Carbon $tanggal) {
@@ -77,10 +104,30 @@ class Laporan extends Controller {
     $beban_angkut = (object) $req->beban_angkut;
     $persediaan = (object) $req->persediaan;
 
-    $laba_rugi = $req->pembelian + $req->penjualan;
-    $laba_rugi = $laba_rugi + $beban_angkut->pembelian + $beban_angkut->penjualan + $beban_angkut->gaji + $beban_angkut->operasional + $beban_angkut->pajak;
-    $laba_rugi = $laba_rugi + $persediaan->awal + $persediaan->akhir;
-    $req->merge(['laba_rugi' => $laba_rugi]);
-    return $this->response->data($req->except('user'));
+    $penjualan = $req->penjualan;
+    $harga_pokok_penjualan = $persediaan->awal + $req->pembelian + $beban_angkut->pembelian + $persediaan->akhir;
+    $laba_kotor = $penjualan - $harga_pokok_penjualan;
+    $beban = $beban_angkut->gaji + $beban_angkut->operasional + $beban_angkut->penjualan + $beban_angkut->pajak;
+    $laba_bersih = $laba_kotor - $beban;
+
+    $tanggal = Carbon::now();
+
+    $laporan = Bulanan::create([
+      'tanggal' => $tanggal,
+      'tanggal_laporan' => $req->tanggal,
+      'penjualan' => $req->penjualan,
+      'pembelian' => $req->pembelian,
+      'persediaan_awal' => $persediaan->awal,
+      'persediaan_akhir' => $persediaan->akhir,
+      'beban_penjualan' => $beban_angkut->penjualan,
+      'beban_pembelian' => $beban_angkut->pembelian,
+      'beban_gaji' => $beban_angkut->gaji,
+      'beban_operasional' => $beban_angkut->operasional,
+      'beban_pajak' => $beban_angkut->pajak,
+      'laba_kotor' => $laba_kotor,
+      'laba_bersih' => $laba_bersih
+    ]);
+
+    return $this->response->data(Bulanan::find($laporan->id));
   }
 }

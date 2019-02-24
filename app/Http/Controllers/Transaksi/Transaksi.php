@@ -50,9 +50,12 @@ class Transaksi extends Controller {
   }
 
   public function daftarTransaksi(Request $req) {
+    if ($invalid = $this->response->validate($req, ['jenis' => 'string|in:pembelian,penjualan', 'tanggal' => 'date'])) return $invalid;
     return $this->response->data(
       TransaksiModel::with(['pemasok', 'pelanggan'])->when($req->filled('jenis'), function($q) use ($req) {
         $q->where('jenis', $req->jenis);
+      })->when($req->filled('tanggal'), function($q) use ($req) {
+        $q->bulanTahun(new Carbon($req->tanggal));
       })->orderBy('tanggal', 'desc')->get()
     );
   }
@@ -127,6 +130,6 @@ class Transaksi extends Controller {
 
     $pelunasan = $transaksi->pelunasan()->create($req->except('user'));
     $transaksi->update(['ph_utang' => $saldo]);
-    return $this->response->data($pelunasan);
+    return $this->response->data($transaksi->pelunasan()->find($pelunasan->id));
   }
 }
