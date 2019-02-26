@@ -81,8 +81,27 @@ class Laporan extends Controller {
   }
 
   public function laporanBulanan(Request $req) {
-    if ($invalid = $this->response->validate($req, ['tanggal' => 'required|date'])) return $invalid;
-    $tanggal = new Carbon($req->tanggal);
+    if ($invalid = $this->response->validate($req, ['tanggal' => 'date'])) return $invalid;
+    if ($req->filled('tanggal')) {
+        $tanggalBefore = new Carbon($req->tanggal);
+        $tanggal = new Carbon("$tanggalBefore->year-$tanggalBefore->month");
+    }
+    else {
+      $lpBulan = Bulanan::orderBy('tanggal_laporan', 'desc')->first();
+      if ($lpBulan) {
+          $tgl = $lpBulan->tanggal_laporan;
+          $drTransaksi = true;
+      }
+      else {
+        $transaksi = Transaksi::orderBy('tanggal', 'asc')->first();
+        $tgl = $transaksi->tanggal;
+        $drTransaksi = false;
+      }
+      $tanggalBefore = new Carbon($tgl);
+      $tanggal = new Carbon("$tanggalBefore->year-$tanggalBefore->month");
+      if ($drTransaksi) $tanggal->addMonth();
+    }
+
     $pembelian = Transaksi::laporanTransaksi($tanggal, 'pembelian')->sum('total');
     $penjualan = Transaksi::laporanTransaksi($tanggal, 'penjualan')->sum('total');
     $beban_angkut = [
@@ -90,12 +109,17 @@ class Laporan extends Controller {
       'penjualan' => (int) Transaksi::laporanTransaksi($tanggal, 'penjualan')->sum('beban_angkut')
     ];
 
+    $laporan_bulanan = Bulanan::whereYear('tanggal_laporan', $tanggal->year)->whereMonth('tanggal_laporan', $tanggal->month)->first();
+    if ($laporan_bulanan) $sudah = true;
+    else $sudah = false;
 
     return $this->response->data([
+      'tanggal' => "$tanggal->year-$tanggal->month-$tanggal->day",
       'pembelian' => (int) $pembelian,
       'penjualan' => (int) $penjualan,
       'beban_angkut' => $beban_angkut,
-      'persediaan' => $this->persediaan($tanggal)
+      'persediaan' => $this->persediaan($tanggal),
+      'sudah' => $sudah
     ]);
   }
 
@@ -103,6 +127,10 @@ class Laporan extends Controller {
     if ($invalid = $this->response->validate($req, $this->ruleBulanan)) return $invalid;
     $beban_angkut = (object) $req->beban_angkut;
     $persediaan = (object) $req->persediaan;
+
+    $tgl = new Carbon($req->tanggal);
+    $laporan_bulanan = Bulanan::whereYear('tanggal_laporan', $tgl->year)->whereMonth('tanggal_laporan', $tgl->month)->first();
+    if ($laporan_bulanan) return $this->response->messageError('Laporan sudah dibuat', 403);
 
     $penjualan = $req->penjualan;
     $harga_pokok_penjualan = $persediaan->awal + $req->pembelian + $beban_angkut->pembelian + $persediaan->akhir;
