@@ -133,7 +133,7 @@ class Laporan extends Controller {
     if ($laporan_bulanan) return $this->response->messageError('Laporan sudah dibuat', 403);
 
     $penjualan = $req->penjualan;
-    $harga_pokok_penjualan = $persediaan->awal + $req->pembelian + $beban_angkut->pembelian + $persediaan->akhir;
+    $harga_pokok_penjualan = $persediaan->awal + $req->pembelian + $beban_angkut->pembelian - $persediaan->akhir;
     $laba_kotor = $penjualan - $harga_pokok_penjualan;
     $beban = $beban_angkut->gaji + $beban_angkut->operasional + $beban_angkut->penjualan + $beban_angkut->pajak;
     $laba_bersih = $laba_kotor - $beban;
