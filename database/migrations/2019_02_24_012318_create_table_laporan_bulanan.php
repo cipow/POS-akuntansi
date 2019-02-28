@@ -15,6 +15,7 @@ class CreateTableLaporanBulanan extends Migration
     {
         Schema::create('laporan_bulanan', function (Blueprint $table) {
             $table->increments('id');
+            $table->unsignedInteger('user_id');
             $table->timestamp('tanggal')->nullable();
             $table->date('tanggal_laporan');
             $table->bigInteger('penjualan');
@@ -29,6 +30,8 @@ class CreateTableLaporanBulanan extends Migration
             $table->bigInteger('laba_kotor');
             $table->bigInteger('laba_bersih');
             // $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('users')->onUpdate('cascade');
         });
     }
 

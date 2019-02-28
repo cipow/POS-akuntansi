@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Transaksi;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Barang;
 use App\Models\Transaksi\Transaksi;
 use Carbon\Carbon;
 
@@ -23,11 +22,11 @@ class ModulTransaksi extends Controller {
     return $transaksi;
   }
 
-  public static function totalTransaksiBarang($jenis, $transaksi_id, $barangs) {
+  public static function totalTransaksiBarang($user, $jenis, $transaksi_id, $barangs) {
     $total = 0;
     foreach ($barangs as $barang) {
       $barang = (object) $barang;
-      $dataBarang = Barang::find($barang->id);
+      $dataBarang = $user->barang()->find($barang->id);
       if ($dataBarang) {
         if ($jenis == 'J' && $dataBarang->stok <= 0) continue;
         if ($jenis == 'B') {
@@ -55,6 +54,30 @@ class ModulTransaksi extends Controller {
     }
 
     return $total;
+  }
+
+  public static function keuangan($user, $relasi, $jenis, $tanggal, $nilai, $kategori, $keterangan = "") {
+    $kas = $user->kas;
+    if ($jenis == 'B') {
+      $sisa_kas = $kas - $nilai;
+      $jenis_keuangan = 'keluar';
+    }
+    else {
+      $sisa_kas = $kas + $nilai;
+      $jenis_keuangan = 'masuk';
+    }
+
+    $keuangan = [
+      'tanggal' => $tanggal,
+      'jenis' => $jenis_keuangan,
+      'nilai' => $nilai,
+      'kategori' => $kategori,
+      'saldo_kas' => $sisa_kas,
+      'keterangan' => $keterangan
+    ];
+    $dataKeuangan = array_merge($keuangan, $relasi);
+    $user->keuangan()->create($dataKeuangan);
+    $user->update(['kas' => $sisa_kas]);
   }
 
 }

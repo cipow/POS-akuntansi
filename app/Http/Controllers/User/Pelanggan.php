@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\User;
 
 use Illuminate\Http\Request;
-use App\Models\Pemasok as PemasokModel;
-use Carbon\Carbon;
+use App\Http\Controllers\Controller;
 use Exception;
 
-class Pemasok extends Controller {
+class Pelanggan extends Controller {
 
   private $user;
 
@@ -16,9 +15,6 @@ class Pemasok extends Controller {
     'email' => 'string|email|max:100',
     'telepon' => 'required|string|max:20',
     'alamat' => 'string',
-    'bank' => 'string|max:100',
-    'no_rekening' => 'string|max:100',
-    'an_rekening' => 'string|max:100',
   ];
 
   public function __construct(Request $req){
@@ -26,43 +22,43 @@ class Pemasok extends Controller {
     $this->user = $req->user;
   }
 
-  public function listPemasok() {
-    return $this->response->data(PemasokModel::all());
+  public function listPelanggan() {
+    return $this->response->data($this->user->pelanggan()->get());
   }
 
-  public function tambahPemasok(Request $req) {
+  public function tambahPelanggan(Request $req) {
     if ($invalid = $this->response->validate($req, $this->rule)) return $invalid;
 
     try {
-      $pemasok = PemasokModel::create($req->all());
-      return $this->response->data($pemasok);
+      $pelanggan = $this->user->pelanggan()->create($req->all());
+      return $this->response->data($pelanggan);
     } catch (Exception $e) {
       return $this->response->serverError();
     }
   }
 
-  public function detailPemasok($id) {
+  public function detailPelanggan($id) {
     try {
-      $pemasok = PemasokModel::findOrFail($id);
-      return $this->response->data($pemasok);
+      $pelanggan = $this->user->pelanggan()->findOrFail($id);
+      return $this->response->data($pelanggan);
     } catch (Exception $e) {
       if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException)
-        return $this->response->messageError('Pemasok tidak ditemukan', 404);
+        return $this->response->messageError('Pelanggan tidak ditemukan', 404);
 
       return $this->response->serverError();
     }
   }
 
-  public function editPemasok(Request $req, $id) {
+  public function editPelanggan(Request $req, $id) {
     if ($invalid = $this->response->validate($req, $this->rule)) return $invalid;
-    
+
     try {
-      $pemasok = PemasokModel::findOrFail($id);
-      $pemasok->update($req->all());
-      return $this->response->data($pemasok);
+      $pelanggan = $this->user->pelanggan()->findOrFail($id);
+      $pelanggan->update($req->all());
+      return $this->response->data($pelanggan);
     } catch (Exception $e) {
       if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException)
-        return $this->response->messageError('Pemasok tidak ditemukan', 404);
+        return $this->response->messageError('Pelanggan tidak ditemukan', 404);
 
       return $this->response->serverError();
     }

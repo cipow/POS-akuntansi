@@ -26,12 +26,18 @@ class Transaksi extends Model {
     return $q->whereYear('tanggal', $tanggal->year)->whereMonth('tanggal', '<', $tanggal->month);
   }
 
+  public function scopeUserId($q, $id) {
+    return $q->whereHas('barangTransaksi.barang', function($qu) use ($id) {
+      $qu->where('user_id', $id);
+    });
+  }
+
   public function pemasok() {
-    return $this->belongsTo('App\Models\Pemasok', 'pemasok_id');
+    return $this->belongsTo('App\Models\User\Pemasok', 'pemasok_id');
   }
 
   public function pelanggan() {
-    return $this->belongsTo('App\Models\Pelanggan', 'pelanggan_id');
+    return $this->belongsTo('App\Models\User\Pelanggan', 'pelanggan_id');
   }
 
   public function barangTransaksi() {
@@ -40,6 +46,10 @@ class Transaksi extends Model {
 
   public function pelunasan() {
     return $this->hasMany('App\Models\Transaksi\TransaksiPelunasan', 'transaksi_id');
+  }
+
+  public function keuangan() {
+    return $this->hasOne('App\Models\User\Keuangan', 'transaksi_id');
   }
 
 }

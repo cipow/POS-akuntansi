@@ -15,7 +15,7 @@ class CreateTableTransaksiPelunasan extends Migration
     {
         Schema::create('transaksi__pelunasan', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedInteger('transaksi_id');
+            $table->unsignedBigInteger('transaksi_id');
             $table->timestamp('tanggal')->nullable();
             $table->bigInteger('nilai');
             $table->bigInteger('debit')->default(0);

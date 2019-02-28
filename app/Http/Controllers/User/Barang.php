@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\User;
 
 use Illuminate\Http\Request;
-use App\Models\Barang as BarangModel;
+use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Exception;
 
@@ -23,19 +23,19 @@ class Barang extends Controller {
   }
 
   public function listBarang() {
-    return $this->response->data(BarangModel::orderBy('tanggal', 'desc')->get());
+    return $this->response->data($this->user->barang()->orderBy('tanggal', 'desc')->get());
   }
 
   public function tambahBarang(Request $req) {
     if ($invalid = $this->response->validate($req, $this->rule)) return $invalid;
 
     try {
-      $barang_sama = BarangModel::where('kode', $req->kode)->first();
+      $barang_sama = $this->user->barang()->where('kode', $req->kode)->first();
       if ($barang_sama) return $this->response->messageError('Kode sudah digunakan', 403);
-      
+
       $req->merge(['tanggal' => Carbon::now()]);
-      $barang = BarangModel::create($req->all());
-      return $this->response->data(BarangModel::find($barang->id));
+      $barang = $this->user->barang()->create($req->all());
+      return $this->response->data($this->user->barang()->find($barang->id));
     } catch (Exception $e) {
       return $this->response->serverError();
     }
@@ -43,7 +43,7 @@ class Barang extends Controller {
 
   public function detailBarang($id) {
     try {
-      $barang = BarangModel::findOrFail($id);
+      $barang = $this->user->barang()->findOrFail($id);
       return $this->response->data($barang);
     } catch (Exception $e) {
       if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException)
@@ -58,9 +58,9 @@ class Barang extends Controller {
     if ($invalid = $this->response->validate($req, $this->rule)) return $invalid;
 
     try {
-      $barang = BarangModel::findOrFail($id);
+      $barang = $this->user->barang()->findOrFail($id);
       if ($barang->kode != $req->kode) {
-        $barang_sama = BarangModel::where('kode', $req->kode)->first();
+        $barang_sama = $this->user->barang()->where('kode', $req->kode)->first();
         if ($barang_sama) return $this->response->messageError('Kode sudah digunakan', 403);
       }
       $barang->update($req->all());

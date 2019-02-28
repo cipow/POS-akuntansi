@@ -27,7 +27,7 @@ class BarangTransaksi extends Model {
   }
 
   public function barang() {
-    return $this->belongsTo('App\Models\Barang', 'barang_id');
+    return $this->belongsTo('App\Models\User\Barang', 'barang_id');
   }
 
   public function transaksi() {

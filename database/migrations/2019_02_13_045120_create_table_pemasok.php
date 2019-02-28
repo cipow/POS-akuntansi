@@ -13,8 +13,9 @@ class CreateTablePemasok extends Migration
      */
     public function up()
     {
-        Schema::create('pemasok', function (Blueprint $table) {
+        Schema::create('users__pemasok', function (Blueprint $table) {
             $table->increments('id');
+            $table->unsignedInteger('user_id');
             $table->string('nama', 100);
             $table->text('alamat');
             $table->string('telepon', 100)->nullable();
@@ -23,6 +24,8 @@ class CreateTablePemasok extends Migration
             $table->string('no_rekening', 100)->nullable();
             $table->string('an_rekening', 100)->nullable();
             $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('users')->onUpdate('cascade');
         });
     }
 
@@ -33,6 +36,6 @@ class CreateTablePemasok extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('pemasok');
+        Schema::dropIfExists('users__pemasok');
     }
 }

@@ -18,6 +18,8 @@ class CreateTableUser extends Migration
             $table->string('nama', 191);
             $table->string('email', 191)->unique();
             $table->string('password', 191);
+            $table->bigInteger('kas')->default(0);
+            $table->bigInteger('modal')->default(0);
             $table->timestamps();
         });
     }

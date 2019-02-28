@@ -4,9 +4,7 @@ namespace App\Http\Controllers\Transaksi;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Barang;
 use App\Models\Transaksi\Transaksi;
-use App\Models\Laporan\Bulanan;
 use Carbon\Carbon;
 
 class Laporan extends Controller {
@@ -43,14 +41,14 @@ class Laporan extends Controller {
 
     if ($req->filled('jenis')) {
       if ($req->jenis == 'bulan') {
-        $data['bulan'] = Bulanan::when($req->filled('tanggal'), function($q) use ($tanggal) {
+        $data['bulan'] = $this->user->lpBulan()->when($req->filled('tanggal'), function($q) use ($tanggal) {
           $q->bulanTahun($tanggal);
         })->orderBy('tanggal', 'desc')->get();
       } else {
 
       }
     } else {
-      $data['bulan'] = Bulanan::orderBy('tanggal', 'desc')->get();
+      $data['bulan'] = $this->user->lpBulan()->orderBy('tanggal', 'desc')->get();
       $data['tahun'] = NULL;
     }
 
@@ -58,7 +56,7 @@ class Laporan extends Controller {
   }
 
   private function persediaan(Carbon $tanggal) {
-    $barangs = Barang::has('barangTransaksi')->get();
+    $barangs = $this->user->barang()->has('barangTransaksi')->get();
     $tanggalSebelumnya = new Carbon($tanggal);
     $tanggalSebelumnya->subMonth();
     $awal = 0; $akhir = 0;
@@ -87,13 +85,13 @@ class Laporan extends Controller {
         $tanggal = new Carbon("$tanggalBefore->year-$tanggalBefore->month");
     }
     else {
-      $lpBulan = Bulanan::orderBy('tanggal_laporan', 'desc')->first();
+      $lpBulan = $this->user->lpBulan()->orderBy('tanggal_laporan', 'desc')->first();
       if ($lpBulan) {
           $tgl = $lpBulan->tanggal_laporan;
           $drTransaksi = true;
       }
       else {
-        $transaksi = Transaksi::orderBy('tanggal', 'asc')->first();
+        $transaksi = Transaksi::userId($this->user->id)->orderBy('tanggal', 'asc')->first();
         $tgl = $transaksi->tanggal;
         $drTransaksi = false;
       }
@@ -102,14 +100,14 @@ class Laporan extends Controller {
       if ($drTransaksi) $tanggal->addMonth();
     }
 
-    $pembelian = Transaksi::laporanTransaksi($tanggal, 'pembelian')->sum('total');
-    $penjualan = Transaksi::laporanTransaksi($tanggal, 'penjualan')->sum('total');
+    $pembelian = Transaksi::userId($this->user->id)->laporanTransaksi($tanggal, 'pembelian')->sum('total');
+    $penjualan = Transaksi::userId($this->user->id)->laporanTransaksi($tanggal, 'penjualan')->sum('total');
     $beban_angkut = [
-      'pembelian' => (int) Transaksi::laporanTransaksi($tanggal, 'pembelian')->sum('beban_angkut'),
-      'penjualan' => (int) Transaksi::laporanTransaksi($tanggal, 'penjualan')->sum('beban_angkut')
+      'pembelian' => (int) Transaksi::userId($this->user->id)->laporanTransaksi($tanggal, 'pembelian')->sum('beban_angkut'),
+      'penjualan' => (int) Transaksi::userId($this->user->id)->laporanTransaksi($tanggal, 'penjualan')->sum('beban_angkut')
     ];
 
-    $laporan_bulanan = Bulanan::whereYear('tanggal_laporan', $tanggal->year)->whereMonth('tanggal_laporan', $tanggal->month)->first();
+    $laporan_bulanan = $this->user->lpBulan()->whereYear('tanggal_laporan', $tanggal->year)->whereMonth('tanggal_laporan', $tanggal->month)->first();
     if ($laporan_bulanan) $sudah = true;
     else $sudah = false;
 
@@ -129,7 +127,7 @@ class Laporan extends Controller {
     $persediaan = (object) $req->persediaan;
 
     $tgl = new Carbon($req->tanggal);
-    $laporan_bulanan = Bulanan::whereYear('tanggal_laporan', $tgl->year)->whereMonth('tanggal_laporan', $tgl->month)->first();
+    $laporan_bulanan = $this->user->lpBulan()->whereYear('tanggal_laporan', $tgl->year)->whereMonth('tanggal_laporan', $tgl->month)->first();
     if ($laporan_bulanan) return $this->response->messageError('Laporan sudah dibuat', 403);
 
     $penjualan = $req->penjualan;
@@ -140,7 +138,7 @@ class Laporan extends Controller {
 
     $tanggal = Carbon::now();
 
-    $laporan = Bulanan::create([
+    $laporan = $this->user->lpBulan()->create([
       'tanggal' => $tanggal,
       'tanggal_laporan' => $req->tanggal,
       'penjualan' => $req->penjualan,
@@ -156,6 +154,6 @@ class Laporan extends Controller {
       'laba_bersih' => $laba_bersih
     ]);
 
-    return $this->response->data(Bulanan::find($laporan->id));
+    return $this->response->data($this->user->lpBulan()->find($laporan->id));
   }
 }

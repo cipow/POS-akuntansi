@@ -15,6 +15,10 @@ class TransaksiPelunasan extends Model {
   public $timestamps = false;
 
   public function transaksi() {
-    return $this->belongsTo('App\Models\Transaksi\TransaksiPelunasan', 'transaksi_id');
+    return $this->belongsTo('App\Models\Transaksi\Transaksi', 'transaksi_id');
+  }
+
+  public function keuangan() {
+    return $this->hasOne('App\Models\User\Keuangan', 'pelunasan_id');
   }
 }

@@ -14,7 +14,7 @@ class CreateTableTransaksi extends Migration
     public function up()
     {
         Schema::create('transaksi', function (Blueprint $table) {
-            $table->increments('id');
+            $table->bigIncrements('id');
             $table->unsignedInteger('pemasok_id')->nullable();
             $table->unsignedInteger('pelanggan_id')->nullable();
             $table->enum('jenis',['pembelian', 'penjualan']);
@@ -26,8 +26,8 @@ class CreateTableTransaksi extends Migration
             $table->bigInteger('beban_angkut')->default(0);
             // $table->timestamps();
 
-            $table->foreign('pemasok_id')->references('id')->on('pemasok')->onUpdate('cascade');
-            $table->foreign('pelanggan_id')->references('id')->on('pelanggan')->onUpdate('cascade');
+            $table->foreign('pemasok_id')->references('id')->on('users__pemasok')->onUpdate('cascade');
+            $table->foreign('pelanggan_id')->references('id')->on('users__pelanggan')->onUpdate('cascade');
         });
     }
 

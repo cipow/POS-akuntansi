@@ -3,8 +3,8 @@
 namespace App\Http\Support;
 
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
-use App\Models\Token;
+use App\Models\User\User;
+use App\Models\User\Token;
 use JWTFirebase;
 use Exception;
 

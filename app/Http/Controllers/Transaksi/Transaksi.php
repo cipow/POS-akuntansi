@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Transaksi;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Pemasok;
-use App\Models\Pelanggan;
 use App\Models\Transaksi\Transaksi as TransaksiModel;
 use Carbon\Carbon;
 
@@ -52,7 +50,7 @@ class Transaksi extends Controller {
   public function daftarTransaksi(Request $req) {
     if ($invalid = $this->response->validate($req, ['jenis' => 'string|in:pembelian,penjualan', 'tanggal' => 'date'])) return $invalid;
     return $this->response->data(
-      TransaksiModel::with(['pemasok', 'pelanggan'])->when($req->filled('jenis'), function($q) use ($req) {
+      TransaksiModel::userId($this->user->id)->with(['pemasok', 'pelanggan'])->when($req->filled('jenis'), function($q) use ($req) {
         $q->where('jenis', $req->jenis);
       })->when($req->filled('tanggal'), function($q) use ($req) {
         $q->bulanTahun(new Carbon($req->tanggal));
@@ -61,7 +59,7 @@ class Transaksi extends Controller {
   }
 
   public function dataTransaksi($id) {
-    return $this->response->data(TransaksiModel::with(['pemasok', 'pelanggan', 'barangTransaksi.barang', 'pelunasan'])->find($id));
+    return $this->response->data(TransaksiModel::userId($this->user->id)->with(['pemasok', 'pelanggan', 'barangTransaksi.barang', 'pelunasan'])->find($id));
   }
 
   private function transaksi(Request $req, $user_lain, $jenis) {
@@ -72,7 +70,7 @@ class Transaksi extends Controller {
 
     $tanggal = Carbon::now();
     $transaksi = ModulTransaksi::buatTransaksi($jenis, $req, $tanggal);
-    $total = ModulTransaksi::totalTransaksiBarang($jenis, $transaksi->id, $req->barang);
+    $total = ModulTransaksi::totalTransaksiBarang($this->user, $jenis, $transaksi->id, $req->barang);
     $hutang = $total;
 
     if ($total == 0) {
@@ -87,8 +85,9 @@ class Transaksi extends Controller {
       ];
       if ($jenis == 'B') $dataPelunasan['debit'] = $total;
       else $dataPelunasan['kredit'] = $total;
-      $transaksi->pelunasan()->create($dataPelunasan);
+      $pelunasan = $transaksi->pelunasan()->create($dataPelunasan);
       $hutang = 0;
+      ModulTransaksi::keuangan($this->user, ['pelunasan_id' => $pelunasan->id], $jenis, $tanggal, $total, 'pelunasan');
     }
 
     $dataTambahan = [
@@ -100,23 +99,28 @@ class Transaksi extends Controller {
     else $dataTambahan['pelanggan_id'] = $user_lain->id;
     $transaksi->update($dataTambahan);
 
-    return $this->response->data(TransaksiModel::with(['pemasok', 'pelanggan'])->find($transaksi->id));
+    if ($req->beban_angkut > 0) {
+      $kategori_beban = ($jenis == 'B') ? 'beban_pembelian':'beban_penjualan';
+      ModulTransaksi::keuangan($this->user, ['transaksi_id' => $transaksi->id], 'B', $tanggal, $req->beban_angkut, $kategori_beban);
+    }
+
+    return $this->response->data(TransaksiModel::userId($this->user->id)->with(['pemasok', 'pelanggan'])->find($transaksi->id));
   }
 
   public function beli(Request $req) {
     if ($invalid = $this->response->validate($req, $this->rulePembelian)) return $invalid;
-    $pemasok = Pemasok::find($req->pemasok_id);
+    $pemasok = $this->user->pemasok()->find($req->pemasok_id);
     return $this->transaksi($req, $pemasok, 'B');
   }
 
   public function jual(Request $req) {
     if ($invalid = $this->response->validate($req, $this->rulePenjualan)) return $invalid;
-    $pelanggan = Pelanggan::find($req->pelanggan_id);
+    $pelanggan = $this->user->pelanggan()->find($req->pelanggan_id);
     return $this->transaksi($req, $pelanggan, 'J');
   }
 
   public function pelunasan(Request $req, $id) {
-    $transaksi = TransaksiModel::find($id);
+    $transaksi = TransaksiModel::userId($this->user->id)->find($id);
     if (!$transaksi) return $this->response->messageError('Transaksi tidak ditemukan', 404);
     if ($invalid = $this->response->validate($req, $this->rulePelunasan)) return $invalid;
     if ($transaksi->ph_utang == 0) return $this->response->messageError('Sudah tidak ada utang', 403);
@@ -130,6 +134,9 @@ class Transaksi extends Controller {
 
     $pelunasan = $transaksi->pelunasan()->create($req->except('user'));
     $transaksi->update(['ph_utang' => $saldo]);
+
+    $jenis = ($transaksi->jenis == 'pembelian') ? 'B':'J';
+    ModulTransaksi::keuangan($this->user, ['pelunasan_id' => $pelunasan->id], $jenis, $tanggal, $req->nilai, 'pelunasan');
     return $this->response->data($transaksi->pelunasan()->find($pelunasan->id));
   }
 }
