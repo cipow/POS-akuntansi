@@ -22,6 +22,7 @@ $router->group(['middleware' => 'jwt'], function($router) {
   $router->group(['prefix' => 'profil'], function($router) {
     $router->get('/', 'User\Profil@index');
     $router->post('/modal', 'User\Profil@modalAwal');
+    $router->post('/prive', 'User\Profil@prive');
     $router->get('/keuangan', 'User\Profil@riwayatKeuangan');
     $router->get('/keuangan/{id}', 'User\Profil@detailKeuangan');
   });

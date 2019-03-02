@@ -9,6 +9,10 @@ class Profil extends Controller {
 
   private $user;
 
+  private $ruleRiwayatKeuangan = [
+    'kategori' => 'string|in:prive,modal,pelunasan,beban_pembelian,beban_penjualan'
+  ];
+
   public function __construct(Request $req){
     parent::__construct();
     $this->user = $req->user;
@@ -33,11 +37,33 @@ class Profil extends Controller {
     return $this->response->messageSuccess('Berhasil tambah modal', 200);
   }
 
-  public function riwayatKeuangan() {
-    return $this->response->data($this->user->keuangan()->orderBy('tanggal', 'desc')->get());
+  public function riwayatKeuangan(Request $req) {
+    if ($invalid = $this->response->validate($req, $this->ruleRiwayatKeuangan)) return $invalid;
+    $riwayatKeuangan = $this->user->keuangan()->orderBy('tanggal', 'desc')->when($req->filled('kategori'), function($q) use ($req) {
+      $q->where('kategori', $req->kategori);
+    })->get();
+    return $this->response->data($riwayatKeuangan);
   }
 
   public function detailKeuangan($id) {
     return $this->response->data($this->user->keuangan()->with(['transaksi', 'pelunasan', 'asset', 'lpBulan'])->find($id));
   }
+
+  public function prive(Request $req) {
+    if ($invalid = $this->response->validate($req, ['prive' => 'required|integer', 'keterangan' => 'string'])) return $invalid;
+    if ($this->user->kas == 0) return $this->response->messageError('Kas kosong', 403);
+    if ($this->user->kas < $req->prive) return $this->response->messageError('Uang Kas kurang', 403);
+    $sisa_kas = $this->user->kas - $req->prive;
+    $this->user->update(['kas' => $sisa_kas]);
+    $this->user->keuangan()->create([
+      'nilai' => $req->prive,
+      'jenis' => 'keluar',
+      'tanggal' => \Carbon\Carbon::now(),
+      'kategori' => 'prive',
+      'saldo_kas' => $sisa_kas,
+      'keterangan' => $req->keterangan
+    ]);
+    return $this->response->messageSuccess('Prive Berhasil', 200);
+  }
+
 }
