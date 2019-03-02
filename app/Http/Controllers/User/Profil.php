@@ -10,7 +10,7 @@ class Profil extends Controller {
   private $user;
 
   private $ruleRiwayatKeuangan = [
-    'kategori' => 'string|in:prive,modal,pelunasan,beban_pembelian,beban_penjualan'
+    'kategori' => 'string|in:prive,modal,pelunasan,beban_pembelian,beban_penjualan,beban_gaji,beban_operasional,beban_pajak'
   ];
 
   public function __construct(Request $req){

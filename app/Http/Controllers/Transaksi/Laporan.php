@@ -154,6 +154,10 @@ class Laporan extends Controller {
       'laba_bersih' => $laba_bersih
     ]);
 
+    ModulTransaksi::keuangan($this->user, ['lp_bulan_id' => $laporan->id], 'B', $tanggal, $beban_angkut->gaji, 'beban_gaji');
+    ModulTransaksi::keuangan($this->user, ['lp_bulan_id' => $laporan->id], 'B', $tanggal, $beban_angkut->operasional, 'beban_operasional');
+    ModulTransaksi::keuangan($this->user, ['lp_bulan_id' => $laporan->id], 'B', $tanggal, $beban_angkut->pajak, 'beban_pajak');
+
     return $this->response->data($this->user->lpBulan()->find($laporan->id));
   }
 }
