@@ -36,4 +36,8 @@ class User extends Model {
     return $this->hasMany('App\Models\User\Asset', 'user_id');
   }
 
+  public function perubahanModal() {
+    return $this->hasMany('App\Models\User\Modal', 'user_id');
+  }
+
 }

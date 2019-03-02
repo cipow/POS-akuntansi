@@ -63,6 +63,9 @@ $router->group(['middleware' => 'jwt'], function($router) {
       $router->get('/', 'Transaksi\Laporan@dataLaporan');
       $router->get('/bulanan', 'Transaksi\Laporan@laporanBulanan');
       $router->post('/bulanan', 'Transaksi\Laporan@simpanLaporanBulanan');
+      $router->get('/modal', 'Transaksi\Laporan@laporanModal');
+      $router->post('/modal', 'Transaksi\Laporan@simpanLaporanModal');
+      $router->get('/modal/riwayat', 'Transaksi\Laporan@riwayatLaporanModal');
     });
 
     $router->group(['prefix' => '/asset'], function($router) {

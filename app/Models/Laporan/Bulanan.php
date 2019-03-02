@@ -20,6 +20,10 @@ class Bulanan extends Model {
     return $q->whereYear('tanggal_laporan', $tanggal->year)->whereMonth('tanggal_laporan', $tanggal->month);
   }
 
+  public function scopeAntaraTanggal($q, array $tanggal) {
+    return $q->whereBetween('tanggal_laporan', $tanggal);
+  }
+
   public function user() {
     return $this->belongsTo('App\Models\User\User', 'user_id');
   }

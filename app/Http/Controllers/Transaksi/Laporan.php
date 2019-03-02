@@ -24,6 +24,15 @@ class Laporan extends Controller {
     'persediaan.akhir' => 'required|integer',
   ];
 
+  private $ruleModal = [
+    'tanggal' => 'required|date',
+    'awal' => 'required|integer',
+    'akhir' => 'required|integer',
+    'range_tanggal' => 'required|string',
+    'total_laba_bersih' => 'required|integer',
+    'total_prive' => 'required|integer'
+  ];
+
   public function __construct(Request $req){
     parent::__construct();
     $this->user = $req->user;
@@ -88,16 +97,16 @@ class Laporan extends Controller {
       $lpBulan = $this->user->lpBulan()->orderBy('tanggal_laporan', 'desc')->first();
       if ($lpBulan) {
           $tgl = $lpBulan->tanggal_laporan;
-          $drTransaksi = true;
+          $drLaporan = true;
       }
       else {
         $transaksi = Transaksi::userId($this->user->id)->orderBy('tanggal', 'asc')->first();
         $tgl = $transaksi->tanggal;
-        $drTransaksi = false;
+        $drLaporan = false;
       }
       $tanggalBefore = new Carbon($tgl);
       $tanggal = new Carbon("$tanggalBefore->year-$tanggalBefore->month");
-      if ($drTransaksi) $tanggal->addMonth();
+      if ($drLaporan) $tanggal->addMonth();
     }
 
     $pembelian = Transaksi::userId($this->user->id)->laporanTransaksi($tanggal, 'pembelian')->sum('total');
@@ -127,7 +136,7 @@ class Laporan extends Controller {
     $persediaan = (object) $req->persediaan;
 
     $tgl = new Carbon($req->tanggal);
-    $laporan_bulanan = $this->user->lpBulan()->whereYear('tanggal_laporan', $tgl->year)->whereMonth('tanggal_laporan', $tgl->month)->first();
+    $laporan_bulanan = $this->user->lpBulan()->bulanTahun($tgl)->first();
     if ($laporan_bulanan) return $this->response->messageError('Laporan sudah dibuat', 403);
 
     $penjualan = $req->penjualan;
@@ -159,5 +168,59 @@ class Laporan extends Controller {
     ModulTransaksi::keuangan($this->user, ['lp_bulan_id' => $laporan->id], 'B', $tanggal, $beban_angkut->pajak, 'beban_pajak');
 
     return $this->response->data($this->user->lpBulan()->find($laporan->id));
+  }
+
+  public function laporanModal(Request $req) {
+    if ($this->user->lpBulan()->get()->isEmpty()) return $this->response->messageError('Laporan Laba Bersih belum ada', 403);
+    $tanggal = ($req->filled('tanggal')) ? new Carbon($req->tanggal):Carbon::now();
+    $tanggalModal = new Carbon("$tanggal->year-$tanggal->month");
+    $tanggalAkhir = new Carbon($tanggalModal);
+    $tanggalAkhir->subDay();
+
+    $modalTanggalAkhir = $this->user->perubahanModal()->bulanTahun($tanggalModal)->first();
+    if ($modalTanggalAkhir) $sudah = true;
+    else $sudah = false;
+
+    if ($modal = $this->user->perubahanModal()->orderBy('tanggal', 'desc')->first()) {
+      $tanggalMulai = new Carbon($modal->tanggal);
+      $tanggalMulai->addMonth();
+    }
+    else {
+      $bulanan = $this->user->lpBulan()->orderBy('tanggal_laporan', 'asc')->first();
+      $tanggalMulai = new Carbon($bulanan->tanggal_laporan);
+    }
+
+    $tanggal = [$tanggalMulai->toDateString(), $tanggalAkhir->toDateString()];
+    $range_tanggal = "$tanggalMulai->year-$tanggalMulai->month - $tanggalAkhir->year-$tanggalAkhir->month";
+    $total_laba_bersih = $this->user->lpBulan()->antaraTanggal($tanggal)->sum('laba_bersih');
+    $total_prive = $this->user->keuangan()->where('kategori', 'prive')->antaraTanggal($tanggal)->sum('nilai');
+    $modal_awal = $this->user->modal;
+    $modal_akhir = $modal_awal + ($total_laba_bersih - $total_prive);
+
+    return $this->response->data([
+      'tanggal' => "$tanggalModal->year-$tanggalModal->month-$tanggalModal->day",
+      'awal' => $modal_awal,
+      'akhir' => $modal_akhir,
+      'range_tanggal' => $range_tanggal,
+      'total_laba_bersih' => (int) $total_laba_bersih,
+      'total_prive' => (int) $total_prive,
+      'sudah' => $sudah
+    ]);
+  }
+
+  public function simpanLaporanModal(Request $req) {
+    if ($invalid = $this->response->validate($req, $this->ruleModal)) return $invalid;
+
+    $tanggal = new Carbon($req->tanggal);
+    $modalTanggal = $this->user->perubahanModal()->bulanTahun($tanggal)->first();
+    if ($modalTanggal) return $this->response->messageError('Laporan sudah dibuat', 403);
+
+    $perubahanModal = $this->user->perubahanModal()->create($req->except('user'));
+    $this->user->update(['modal' => $req->akhir]);
+    return $this->response->data($this->user->perubahanModal()->find($perubahanModal->id));
+  }
+
+  public function riwayatLaporanModal() {
+    return $this->response->data($this->user->perubahanModal()->orderBy('tanggal', 'desc')->get());
   }
 }

@@ -16,6 +16,10 @@ class Keuangan extends Model {
 
   public $timestamps = false;
 
+  public function scopeAntaraTanggal($q, array $tanggal) {
+    return $q->whereBetween('tanggal', $tanggal);
+  }
+
   public function transaksi() {
     return $this->belongsTo('App\Models\Transaksi\Transaksi', 'transaksi_id');
   }
