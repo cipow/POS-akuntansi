@@ -65,6 +65,11 @@ $router->group(['middleware' => 'jwt'], function($router) {
       $router->post('/bulanan', 'Transaksi\Laporan@simpanLaporanBulanan');
     });
 
+    $router->group(['prefix' => '/asset'], function($router) {
+      $router->get('/', 'Transaksi\Asset@daftar');
+      $router->post('/', 'Transaksi\Asset@tambah');
+    });
+
   });
 
 });
