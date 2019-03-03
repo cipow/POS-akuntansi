@@ -16,6 +16,14 @@ class Pemasok extends Model {
     'user_id'
   ];
 
+  protected $appends = [
+    'hutang'
+  ];
+
+  public function getHutangAttribute() {
+    return (int) $this->transaksi()->where('ph_utang', '>', 0)->sum('ph_utang');
+  }
+
   public function transaksi() {
     return $this->hasMany('App\Models\Transaksi\Transaksi', 'pemasok_id');
   }

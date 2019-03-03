@@ -14,6 +14,14 @@ class Pelanggan extends Model {
     'user_id'
   ];
 
+  protected $appends = [
+    'piutang'
+  ];
+
+  public function getPiutangAttribute() {
+    return (int) $this->transaksi()->where('ph_utang', '>', 0)->sum('ph_utang');
+  }
+
   public function transaksi() {
     return $this->hasMany('App\Models\Transaksi\Transaksi', 'pelanggan_id');
   }
