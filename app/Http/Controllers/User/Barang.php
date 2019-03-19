@@ -54,6 +54,19 @@ class Barang extends Controller {
 
   }
 
+  public function detailBarangTransaksi($id) {
+    try {
+      $barang = $this->user->barang()->findOrFail($id);
+      $transaksi = $barang->barangTransaksi()->with('transaksi')->orderBy('id', 'desc')->get();
+      return $this->response->data($transaksi);
+    } catch (Exception $e) {
+      if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException)
+        return $this->response->messageError('Barang tidak ditemukan', 404);
+
+      return $this->response->serverError();
+    }
+  }
+
   public function editBarang(Request $req, $id) {
     if ($invalid = $this->response->validate($req, $this->rule)) return $invalid;
 

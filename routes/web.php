@@ -32,6 +32,7 @@ $router->group(['middleware' => 'jwt'], function($router) {
     $router->post('/', 'User\Barang@tambahBarang');
     $router->get('/{id}', 'User\Barang@detailBarang');
     $router->put('/{id}', 'User\Barang@editBarang');
+    $router->get('/{id}/transaksi', 'User\Barang@detailBarangTransaksi');
     // $router->delete('/{id}', 'Barang@hapusBarang');
 
   });
