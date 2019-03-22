@@ -364,6 +364,10 @@ class Laporan extends Controller {
       'saldo_akhir_bulan' => $req->saldo_akhir
     ]);
 
-    return $this->response->data($laporan);
+    return $this->response->data($this->user->lpKas()->find($laporan->id));
+  }
+
+  public function riwayatLaporanKas() {
+    return $this->response->data($this->user->lpKas()->orderBy('tanggal', 'desc')->get());
   }
 }
