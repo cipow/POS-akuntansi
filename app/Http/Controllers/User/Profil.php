@@ -39,7 +39,7 @@ class Profil extends Controller {
 
   public function riwayatKeuangan(Request $req) {
     if ($invalid = $this->response->validate($req, $this->ruleRiwayatKeuangan)) return $invalid;
-    $riwayatKeuangan = $this->user->keuangan()->orderBy('tanggal', 'desc')->when($req->filled('kategori'), function($q) use ($req) {
+    $riwayatKeuangan = $this->user->keuangan()->orderBy('tanggal', 'desc')->orderBy('id', 'desc')->when($req->filled('kategori'), function($q) use ($req) {
       $q->where('kategori', $req->kategori);
     })->get();
     return $this->response->data($riwayatKeuangan);

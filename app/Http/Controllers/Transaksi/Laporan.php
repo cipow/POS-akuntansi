@@ -22,6 +22,9 @@ class Laporan extends Controller {
     'beban_angkut.pajak' => 'required|integer',
     'persediaan.awal' => 'required|integer',
     'persediaan.akhir' => 'required|integer',
+    'depresiasi.bangunan' => 'required|integer',
+    'depresiasi.kendaraan' => 'required|integer',
+    'depresiasi.peralatan' => 'required|integer'
   ];
 
   private $ruleModal = [
@@ -31,6 +34,27 @@ class Laporan extends Controller {
     'range_tanggal' => 'required|string',
     'total_laba_bersih' => 'required|integer',
     'total_prive' => 'required|integer'
+  ];
+
+  private $ruleKas = [
+    'tanggal' => 'required|date',
+    'pelunasan.piutang' => 'required|integer',
+    'pelunasan.hutang' => 'required|integer',
+    'beban.angkut' => 'required|integer',
+    'beban.gaji' => 'required|integer',
+    'beban.operasional' => 'required|integer',
+    'beban.pajak' => 'required|integer',
+    'total_operasi' => 'required|integer',
+    'asset.tanah' => 'required|integer',
+    'asset.perlengkapan' => 'required|integer',
+    'asset.bangunan' => 'required|integer',
+    'asset.kendaraan' => 'required|integer',
+    'asset.peralatan' => 'required|integer',
+    'total_investasi' => 'required|integer',
+    'prive' => 'required|integer',
+    'kenaikan_saldo' => 'required|integer',
+    'saldo_awal' => 'required|integer',
+    'saldo_akhir' => 'required|integer'
   ];
 
   public function __construct(Request $req){
@@ -116,6 +140,12 @@ class Laporan extends Controller {
       'penjualan' => (int) Transaksi::userId($this->user->id)->laporanTransaksi($tanggal, 'penjualan')->sum('beban_angkut')
     ];
 
+    $depresiasi = [
+      'bangunan' => (int) $this->user->asset()->laporanKas($tanggal, 'bangunan')->sum('nilai_sekarang'),
+      'kendaraan' => (int) $this->user->asset()->laporanKas($tanggal, 'kendaraan')->sum('nilai_sekarang'),
+      'peralatan' => (int) $this->user->asset()->laporanKas($tanggal, 'peralatan')->sum('nilai_sekarang')
+    ];
+
     $laporan_bulanan = $this->user->lpBulan()->whereYear('tanggal_laporan', $tanggal->year)->whereMonth('tanggal_laporan', $tanggal->month)->first();
     if ($laporan_bulanan) $sudah = true;
     else $sudah = false;
@@ -126,6 +156,7 @@ class Laporan extends Controller {
       'penjualan' => (int) $penjualan,
       'beban_angkut' => $beban_angkut,
       'persediaan' => $this->persediaan($tanggal),
+      'depresiasi' => $depresiasi,
       'sudah' => $sudah
     ]);
   }
@@ -134,6 +165,7 @@ class Laporan extends Controller {
     if ($invalid = $this->response->validate($req, $this->ruleBulanan)) return $invalid;
     $beban_angkut = (object) $req->beban_angkut;
     $persediaan = (object) $req->persediaan;
+    $depresiasi = (object) $req->depresiasi;
 
     $tgl = new Carbon($req->tanggal);
     $laporan_bulanan = $this->user->lpBulan()->bulanTahun($tgl)->first();
@@ -159,6 +191,9 @@ class Laporan extends Controller {
       'beban_gaji' => $beban_angkut->gaji,
       'beban_operasional' => $beban_angkut->operasional,
       'beban_pajak' => $beban_angkut->pajak,
+      'depresiasi_bangunan' => $depresiasi->bangunan,
+      'depresiasi_kendaraan' => $depresiasi->kendaraan,
+      'depresiasi_peralatan' => $depresiasi->peralatan,
       'laba_kotor' => $laba_kotor,
       'laba_bersih' => $laba_bersih
     ]);
@@ -222,5 +257,113 @@ class Laporan extends Controller {
 
   public function riwayatLaporanModal() {
     return $this->response->data($this->user->perubahanModal()->orderBy('tanggal', 'desc')->get());
+  }
+
+  public function laporanKas(Request $req) {
+    if ($invalid = $this->response->validate($req, ['tanggal' => 'date'])) return $invalid;
+    if ($req->filled('tanggal')) {
+      $tanggalBefore = new Carbon($req->tanggal);
+      $tanggal = new Carbon("$tanggalBefore->year-$tanggalBefore->month");
+    } else {
+      $lpKas = $this->user->lpKas()->orderBy('tanggal_laporan', 'desc')->first();
+      if ($lpKas) {
+          $tgl = $lpKas->tanggal_laporan;
+          $saldo_awal = $lpKas->saldo_akhir_bulan;
+          $drLaporan = true;
+      }
+      else {
+        $riwayatKeuangan = $this->user->keuangan()->orderBy('tanggal', 'asc')->first();
+        $tgl = $riwayatKeuangan->tanggal;
+        $saldo_awal = $riwayatKeuangan->nilai;
+        $drLaporan = false;
+      }
+      $tanggalBefore = new Carbon($tgl);
+      $tanggal = new Carbon("$tanggalBefore->year-$tanggalBefore->month");
+      if ($drLaporan) $tanggal->addMonth();
+    }
+
+    $pelunasan = [
+      'piutang' => (int) $this->user->keuangan()->laporanKas($tanggal, 'pelunasan')->where('jenis', 'masuk')->sum('nilai'),
+      'hutang' => (int) $this->user->keuangan()->laporanKas($tanggal, 'pelunasan')->where('jenis', 'keluar')->sum('nilai')
+    ];
+
+    $beban = [
+      'angkut' => (int) ($this->user->keuangan()->laporanKas($tanggal, 'beban_pembelian')->sum('nilai') + $this->user->keuangan()->laporanKas($tanggal, 'beban_penjualan')->sum('nilai')),
+      'gaji' => (int) $this->user->keuangan()->laporanKas($tanggal, 'beban_gaji')->sum('nilai'),
+      'operasional' => (int) $this->user->keuangan()->laporanKas($tanggal, 'beban_operasional')->sum('nilai'),
+      'pajak' => (int) $this->user->keuangan()->laporanKas($tanggal, 'beban_pajak')->sum('nilai')
+    ];
+
+    $total_operasi = $pelunasan['piutang'] - $pelunasan['hutang'] - $beban['angkut'] - $beban['gaji'] - $beban['operasional'] - $beban['pajak'];
+
+    $asset = [
+      'tanah' => (int) $this->user->asset()->laporanKas($tanggal, 'tanah')->sum('harga_beli'),
+      'perlengkapan' => (int) $this->user->asset()->laporanKas($tanggal, 'perlengkapan')->sum('harga_beli'),
+      'bangunan' => (int) $this->user->asset()->laporanKas($tanggal, 'bangunan')->sum('harga_beli'),
+      'kendaraan' => (int) $this->user->asset()->laporanKas($tanggal, 'kendaraan')->sum('harga_beli'),
+      'peralatan' => (int) $this->user->asset()->laporanKas($tanggal, 'peralatan')->sum('harga_beli')
+    ];
+
+    $total_investasi = $asset['tanah'] + $asset['perlengkapan'] + $asset['bangunan'] + $asset['kendaraan'] + $asset['peralatan'];
+
+    $prive = (int) $this->user->keuangan()->laporanKas($tanggal, 'prive')->sum('nilai');
+    $kenaikan_saldo = $total_operasi - $total_investasi - $prive;
+    $saldo_akhir = $saldo_awal + $kenaikan_saldo;
+
+    $laporan_kas = $this->user->lpKas()->whereYear('tanggal_laporan', $tanggal->year)->whereMonth('tanggal_laporan', $tanggal->month)->first();
+    if ($laporan_kas) $sudah = true;
+    else $sudah = false;
+
+    return $this->response->data([
+      'tanggal' => "$tanggal->year-$tanggal->month-$tanggal->day",
+      'pelunasan' => $pelunasan,
+      'beban' => $beban,
+      'total_operasi' => $total_operasi,
+      'asset' => $asset,
+      'total_investasi' => $total_investasi,
+      'prive' => $prive,
+      'kenaikan_saldo' => $kenaikan_saldo,
+      'saldo_awal' => $saldo_awal,
+      'saldo_akhir' => $saldo_akhir,
+      'sudah' => $sudah
+    ]);
+  }
+
+  public function simpanLaporanKas(Request $req) {
+    if ($invalid = $this->response->validate($req, $this->ruleKas)) return $invalid;
+
+    $tgl = new Carbon($req->tanggal);
+    $laporan_kas = $this->user->lpKas()->bulanTahun($tgl)->first();
+    if ($laporan_kas) return $this->response->messageError('Laporan sudah dibuat', 403);
+
+    $pelunasan = (object) $req->pelunasan;
+    $beban = (object) $req->beban;
+    $asset = (object) $req->asset;
+
+    $tanggal = Carbon::now();
+
+    $laporan = $this->user->lpKas()->create([
+      'tanggal' => $tanggal,
+      'tanggal_laporan' => $req->tanggal,
+      'pelunasan_piutang' => $pelunasan->piutang,
+      'pelunasan_hutang' => $pelunasan->hutang,
+      'beban_angkut' => $beban->angkut,
+      'beban_gaji' => $beban->gaji,
+      'beban_operasional' => $beban->operasional,
+      'beban_pajak' => $beban->pajak,
+      'total_operasi' => $req->total_operasi,
+      'asset_tanah' => $asset->tanah,
+      'asset_perlengkapan' => $asset->perlengkapan,
+      'asset_bangunan' => $asset->bangunan,
+      'asset_kendaraan' => $asset->kendaraan,
+      'asset_peralatan' => $asset->peralatan,
+      'total_investasi' => $req->total_investasi,
+      'total_prive' => $req->prive,
+      'kenaikan_saldo' => $req->kenaikan_saldo,
+      'saldo_awal_bulan' => $req->saldo_awal,
+      'saldo_akhir_bulan' => $req->saldo_akhir
+    ]);
+
+    return $this->response->data($laporan);
   }
 }

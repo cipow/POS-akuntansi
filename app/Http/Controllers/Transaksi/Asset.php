@@ -46,7 +46,7 @@ class Asset extends Controller {
       'harga_beli' => $req->nilai,
       'umur_tahun' => $req->umur,
       'nilai_penyusutan' => $nilaiPenyusutan,
-      'nilai_sekarang' => $req->nilai,
+      'nilai_sekarang' => $nilaiPenyusutan,
       'masa_berakhir' => $tanggalUmur
     ]);
 

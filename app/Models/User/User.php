@@ -28,6 +28,10 @@ class User extends Model {
     return $this->hasMany('App\Models\Laporan\Bulanan', 'user_id');
   }
 
+  public function lpKas() {
+    return $this->hasMany('App\Models\Laporan\Kas', 'user_id');
+  }
+
   public function keuangan() {
     return $this->hasMany('App\Models\User\Keuangan', 'user_id');
   }

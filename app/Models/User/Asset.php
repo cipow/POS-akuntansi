@@ -16,6 +16,14 @@ class Asset extends Model {
 
   public $timestamps = false;
 
+  public function scopeLaporanKas($q, $tanggal, $jenis) {
+    return $q->bulanTahun($tanggal)->where('kategori', $jenis);
+  }
+
+  public function scopeBulanTahun($q, $tanggal) {
+    return $q->whereYear('tanggal', $tanggal->year)->whereMonth('tanggal', $tanggal->month);
+  }
+
   public function keuangan() {
     return $this->hasOne('App\Models\User\Keuangan', 'asset_id');
   }

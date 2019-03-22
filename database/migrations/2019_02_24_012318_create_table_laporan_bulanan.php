@@ -27,6 +27,9 @@ class CreateTableLaporanBulanan extends Migration
             $table->bigInteger('beban_gaji');
             $table->bigInteger('beban_operasional');
             $table->bigInteger('beban_pajak');
+            $table->bigInteger('depresiasi_bangunan');
+            $table->bigInteger('depresiasi_kendaraan');
+            $table->bigInteger('depresiasi_peralatan');
             $table->bigInteger('laba_kotor');
             $table->bigInteger('laba_bersih');
             // $table->timestamps();

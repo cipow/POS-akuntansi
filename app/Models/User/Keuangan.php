@@ -20,6 +20,14 @@ class Keuangan extends Model {
     return $q->whereBetween('tanggal', $tanggal);
   }
 
+  public function scopeLaporanKas($q, $tanggal, $jenis) {
+    return $q->bulanTahun($tanggal)->where('kategori', $jenis);
+  }
+
+  public function scopeBulanTahun($q, $tanggal) {
+    return $q->whereYear('tanggal', $tanggal->year)->whereMonth('tanggal', $tanggal->month);
+  }
+
   public function transaksi() {
     return $this->belongsTo('App\Models\Transaksi\Transaksi', 'transaksi_id');
   }
