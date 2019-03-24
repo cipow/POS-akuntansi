@@ -36,7 +36,7 @@ class Asset extends Controller {
       if ($req->umur == 0) return $this->response->messageError('Selain Tanah dan Perlengkapan tidak boleh 0', 403);
       $nilaiPenyusutan = ceil($req->nilai / $req->umur);
       $tanggalUmur = new Carbon($tanggal);
-      $tanggalUmur->addYear($req->umur);
+      $tanggalUmur->addMonth($req->umur);
     }
 
     $asset = $this->user->asset()->create([
