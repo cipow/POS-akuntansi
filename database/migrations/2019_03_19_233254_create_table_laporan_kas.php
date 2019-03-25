@@ -35,6 +35,8 @@ class CreateTableLaporanKas extends Migration
           $table->bigInteger('kenaikan_saldo');
           $table->bigInteger('saldo_awal_bulan');
           $table->bigInteger('saldo_akhir_bulan');
+
+          $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 
