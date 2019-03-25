@@ -205,6 +205,49 @@ class Laporan extends Controller {
     return $this->response->data($this->user->lpBulan()->find($laporan->id));
   }
 
+  public function laporanModals(Request $req) {
+    if ($this->user->lpBulan()->get()->isEmpty()) return $this->response->messageError('Laporan Laba Bersih belum ada', 403);
+    if ($invalid = $this->response->validate($req, ['tanggal' => 'date'])) return $invalid;
+    if ($req->filled('tanggal')) {
+        $tanggalBefore = new Carbon($req->tanggal);
+        $tanggal = new Carbon("$tanggalBefore->year-$tanggalBefore->month");
+    }
+    else {
+      $perubahanModal = $this->user->perubahanModal()->orderBy('tanggal', 'desc')->first();
+      if ($perubahanModal) {
+          $tgl = $perubahanModal->tanggal;
+          $drLaporan = true;
+      }
+      else {
+        $lpBulan = $this->user->lpBulan()->orderBy('tanggal', 'asc')->first();
+        $tgl = $lpBulan->tanggal;
+        $drLaporan = false;
+      }
+      $tanggalBefore = new Carbon($tgl);
+      $tanggal = new Carbon("$tanggalBefore->year-$tanggalBefore->month");
+      if ($drLaporan) $tanggal->addMonth();
+    }
+
+    $dataPerubahanModal = $this->user->perubahanModal()->bulanTahun($tanggal)->first();
+    if ($dataPerubahanModal) $sudah = true;
+    else $sudah = false;
+
+    $range_tanggal = "$tanggal->year-$tanggal->month - $tanggal->year-$tanggal->month";
+    $total_laba_bersih = $this->user->lpBulan()->bulanTahun($tanggal)->sum('laba_bersih');
+    $total_prive = $this->user->keuangan()->laporanKas($tanggal, 'prive')->sum('nilai');
+    $modal_awal = $this->user->modal;
+    $modal_akhir = $modal_awal + ($total_laba_bersih - $total_prive);
+    return $this->response->data([
+      'tanggal' => "$tanggal->year-$tanggal->month-$tanggal->day",
+      'awal' => $modal_awal,
+      'akhir' => $modal_akhir,
+      'range_tanggal' => $range_tanggal,
+      'total_laba_bersih' => (int) $total_laba_bersih,
+      'total_prive' => (int) $total_prive,
+      'sudah' => $sudah
+    ]);
+  }
+
   public function laporanModal(Request $req) {
     if ($this->user->lpBulan()->get()->isEmpty()) return $this->response->messageError('Laporan Laba Bersih belum ada', 403);
     $tanggal = ($req->filled('tanggal')) ? new Carbon($req->tanggal):Carbon::now();

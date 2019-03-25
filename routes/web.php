@@ -64,7 +64,7 @@ $router->group(['middleware' => 'jwt'], function($router) {
       $router->get('/', 'Transaksi\Laporan@dataLaporan');
       $router->get('/bulanan', 'Transaksi\Laporan@laporanBulanan');
       $router->post('/bulanan', 'Transaksi\Laporan@simpanLaporanBulanan');
-      $router->get('/modal', 'Transaksi\Laporan@laporanModal');
+      $router->get('/modal', 'Transaksi\Laporan@laporanModals');
       $router->post('/modal', 'Transaksi\Laporan@simpanLaporanModal');
       $router->get('/kas', 'Transaksi\Laporan@laporanKas');
       $router->post('/kas', 'Transaksi\Laporan@simpanLaporanKas');
