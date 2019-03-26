@@ -24,6 +24,14 @@ class Asset extends Model {
     return $q->whereYear('tanggal', $tanggal->year)->whereMonth('tanggal', $tanggal->month);
   }
 
+  public function scopeBelumKadaluarsa($q) {
+    return $q->where('nilai_sekarang', '<', 'harga_beli');
+  }
+
+  public function scopeKategori($q, $kategori) {
+    return $q->where('kategori', $kategori);
+  }
+
   public function keuangan() {
     return $this->hasOne('App\Models\User\Keuangan', 'asset_id');
   }

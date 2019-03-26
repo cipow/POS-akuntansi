@@ -57,6 +57,26 @@ class Laporan extends Controller {
     'saldo_akhir' => 'required|integer'
   ];
 
+  private $ruleNeraca = [
+    'tanggal' => 'required|date',
+    'tanggal_laporan' => 'required|date',
+    'kas' => 'required|integer',
+    'modal' => 'required|integer',
+    'persediaan_akhir' => 'required|integer',
+    'hutang' => 'required|integer',
+    'piutang' => 'required|integer',
+    'tanah' => 'required|integer',
+    'perlengkapan' => 'required|integer',
+    'bangunan' => 'required|integer',
+    'depresiasi_bangunan' => 'required|integer',
+    'peralatan' => 'required|integer',
+    'depresiasi_peralatan' => 'required|integer',
+    'kendaraan' => 'required|integer',
+    'depresiasi_kendaraan' => 'required|integer',
+    'aktiva' => 'required|integer',
+    'passiva' => 'required|integer'
+  ];
+
   public function __construct(Request $req){
     parent::__construct();
     $this->user = $req->user;
@@ -412,5 +432,57 @@ class Laporan extends Controller {
 
   public function riwayatLaporanKas() {
     return $this->response->data($this->user->lpKas()->orderBy('tanggal', 'desc')->get());
+  }
+
+  public function laporanNeraca() {
+    $tanggal = Carbon::now();
+    $kas = $this->user->kas;
+    $modal = $this->user->modal;
+    $persediaan = $this->persediaan($tanggal);
+    $hutang = Transaksi::userId($this->user->id)->where('jenis', 'pembelian')->sum('ph_utang');
+    $piutang = Transaksi::userId($this->user->id)->where('jenis', 'penjualan')->sum('ph_utang');
+    $tanah = $this->user->asset()->kategori('tanah')->sum('harga_beli');
+    $perlengkapan = $this->user->asset()->kategori('perlengkapan')->sum('harga_beli');
+    $bangunan = $this->user->asset()->kategori('bangunan')->sum('harga_beli');
+    $depresiasi_bangunan = $this->user->asset()->kategori('bangunan')->belumKadaluarsa()->sum('nilai_sekarang');
+    $peralatan = $this->user->asset()->kategori('peralatan')->sum('harga_beli');
+    $depresiasi_peralatan = $this->user->asset()->kategori('peralatan')->belumKadaluarsa()->sum('nilai_sekarang');
+    $kendaraan = $this->user->asset()->kategori('kendaraan')->sum('harga_beli');
+    $depresiasi_kendaraan = $this->user->asset()->kategori('kendaraan')->belumKadaluarsa()->sum('nilai_sekarang');
+    $aktiva = $kas + $piutang + $persediaan['akhir'] + $tanah + $perlengkapan + $bangunan + $peralatan + $kendaraan;
+    $aktiva = $aktiva - $depresiasi_bangunan - $depresiasi_peralatan - $depresiasi_kendaraan;
+    $passiva = $modal + $hutang;
+    $tgl = "$tanggal->year-$tanggal->month-$tanggal->day";
+    $time = "$tanggal->hour:$tanggal->minute:$tanggal->second";
+
+    return $this->response->data([
+      'tanggal' => "$tgl $time",
+      'tanggal_laporan' => $tgl,
+      'kas' => (int) $kas,
+      'modal' => (int) $modal,
+      'persediaan_akhir' => (int) $persediaan['akhir'],
+      'hutang' => (int) $hutang,
+      'piutang' => (int) $piutang,
+      'tanah' => (int) $tanah,
+      'perlengkapan' => (int) $perlengkapan,
+      'bangunan' => (int) $bangunan,
+      'depresiasi_bangunan' => (int) $depresiasi_bangunan,
+      'peralatan' => (int) $peralatan,
+      'depresiasi_peralatan' => (int) $depresiasi_peralatan,
+      'kendaraan' => (int) $kendaraan,
+      'depresiasi_kendaraan' => (int) $depresiasi_kendaraan,
+      'aktiva' => (int) $aktiva,
+      'passiva' => (int) $passiva
+    ]);
+  }
+
+  public function simpanLaporanNeraca(Request $req) {
+    if ($invalid = $this->response->validate($req, $this->ruleNeraca)) return $invalid;
+    $neraca = $this->user->lpNeraca()->create($req->except('user'));
+    return $this->response->data($neraca);
+  }
+
+  public function riwayatLaporanNeraca() {
+    return $this->response->data($this->user->lpNeraca()->orderBy('tanggal', 'desc')->get());
   }
 }

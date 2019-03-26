@@ -23,7 +23,7 @@ class CreateTableAsset extends Migration
             $table->integer('umur_tahun')->default(0);
             $table->integer('nilai_penyusutan')->default(0);
             $table->integer('nilai_sekarang');
-            $table->timestamp('masa_berakhir')->nullable();
+            $table->dateTime('masa_berakhir')->nullable();
             // $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onUpdate('cascade');
