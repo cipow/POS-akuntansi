@@ -479,6 +479,13 @@ class Laporan extends Controller {
   public function simpanLaporanNeraca(Request $req) {
     if ($invalid = $this->response->validate($req, $this->ruleNeraca)) return $invalid;
     $neraca = $this->user->lpNeraca()->create($req->except('user'));
+
+    $assets = $this->user->asset()->kategoriPenyusutan()->get();
+    foreach ($assets as $asset) {
+      $nilai_sekarang = $asset->nilai_sekarang + $asset->nilai_penyusutan;
+      $asset->update(['nilai_sekarang' => $nilai_sekarang]);
+    }
+    
     return $this->response->data($neraca);
   }
 

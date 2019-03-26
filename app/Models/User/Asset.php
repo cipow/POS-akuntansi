@@ -25,11 +25,15 @@ class Asset extends Model {
   }
 
   public function scopeBelumKadaluarsa($q) {
-    return $q->where('nilai_sekarang', '<', 'harga_beli');
+    return $q->whereRaw('nilai_sekarang < harga_beli');
   }
 
   public function scopeKategori($q, $kategori) {
     return $q->where('kategori', $kategori);
+  }
+
+  public function scopeKategoriPenyusutan($q) {
+    return $q->where('kategori', 'bangunan')->orWhere('kategori', 'peralatan')->orWhere('kategori', 'kendaraan');
   }
 
   public function keuangan() {
