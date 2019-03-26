@@ -51,6 +51,13 @@ $router->group(['middleware' => 'jwt'], function($router) {
     $router->put('/{id}', 'User\Pelanggan@editPelanggan');
   });
 
+  $router->group(['prefix' => '/karyawan'], function($router) {
+    $router->get('/', 'User\Karyawan@listKaryawan');
+    $router->post('/', 'User\Karyawan@tambahKaryawan');
+    $router->get('/{id}', 'User\Karyawan@detailKaryawan');
+    $router->put('/{id}', 'User\Karyawan@editKaryawan');
+  });
+
   $router->group(['middleware' => 'modal'], function($router) {
     $router->group(['prefix' => '/transaksi'], function($router) {
       $router->get('/', 'Transaksi\Transaksi@daftarTransaksi');

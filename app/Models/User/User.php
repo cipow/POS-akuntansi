@@ -24,12 +24,20 @@ class User extends Model {
     return $this->hasMany('App\Models\User\Pelanggan', 'user_id');
   }
 
+  public function karyawan() {
+    return $this->hasMany('App\Models\User\Karyawan', 'user_id');
+  }
+
   public function lpBulan() {
     return $this->hasMany('App\Models\Laporan\Bulanan', 'user_id');
   }
 
   public function lpKas() {
     return $this->hasMany('App\Models\Laporan\Kas', 'user_id');
+  }
+
+  public function lpNeraca() {
+    return $this->hasMany('App\Models\Laporan\Neraca', 'user_id');
   }
 
   public function keuangan() {
