@@ -195,6 +195,7 @@ class Laporan extends Controller {
     $harga_pokok_penjualan = $persediaan->awal + $req->pembelian + $beban_angkut->pembelian - $persediaan->akhir;
     $laba_kotor = $penjualan - $harga_pokok_penjualan;
     $beban = $beban_angkut->gaji + $beban_angkut->operasional + $beban_angkut->penjualan + $beban_angkut->pajak;
+    $beban = $beban + $depresiasi->bangunan + $depresiasi->kendaraan + $depresiasi->peralatan;
     $laba_bersih = $laba_kotor - $beban;
 
     $tanggal = Carbon::now();
@@ -485,7 +486,7 @@ class Laporan extends Controller {
       $nilai_sekarang = $asset->nilai_sekarang + $asset->nilai_penyusutan;
       $asset->update(['nilai_sekarang' => $nilai_sekarang]);
     }
-    
+
     return $this->response->data($neraca);
   }
 
