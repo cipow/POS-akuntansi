@@ -80,4 +80,13 @@ class ModulTransaksi extends Controller {
     $user->update(['kas' => $sisa_kas]);
   }
 
+  public static function logJurnal($user, $tanggal, $kode, $nilai, $keterangan) {
+    $user->jurnal()->create([
+      'tanggal' => $tanggal,
+      'kode' => $kode,
+      'nilai' => $nilai,
+      'keterangan' => $keterangan
+    ]);
+  }
+
 }

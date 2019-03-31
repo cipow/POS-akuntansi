@@ -104,7 +104,21 @@ class Transaksi extends Controller {
       ModulTransaksi::keuangan($this->user, ['transaksi_id' => $transaksi->id], 'B', $tanggal, $req->beban_angkut, $kategori_beban);
     }
 
+    $this->logTransaksi($tanggal, $jenis, $req->lunas, $total, $req->beban_angkut);
     return $this->response->data(TransaksiModel::userId($this->user->id)->with(['pemasok', 'pelanggan'])->find($transaksi->id));
+  }
+
+  private function logTransaksi($tanggal, $jenis, $lunas, $total, $beban) {
+    if ($jenis == 'B') {
+      ModulTransaksi::logJurnal($this->user, $tanggal, '1', $total, 'pembelian');
+      ModulTransaksi::logJurnal($this->user, $tanggal, '3', $beban, 'beban_pembelian');
+      if ($lunas) ModulTransaksi::logJurnal($this->user, $tanggal, '5', $total, 'pelunasan_hutang');
+    } else {
+      ModulTransaksi::logJurnal($this->user, $tanggal, '2', $total, 'penjualan');
+      ModulTransaksi::logJurnal($this->user, $tanggal, '2.1', $total, 'penjualan');
+      ModulTransaksi::logJurnal($this->user, $tanggal, '4', $beban, 'beban_penjualan');
+      if ($lunas) ModulTransaksi::logJurnal($this->user, $tanggal, '6', $total, 'pelunasan_piutang');
+    }
   }
 
   public function beli(Request $req) {
@@ -137,6 +151,10 @@ class Transaksi extends Controller {
 
     $jenis = ($transaksi->jenis == 'pembelian') ? 'B':'J';
     ModulTransaksi::keuangan($this->user, ['pelunasan_id' => $pelunasan->id], $jenis, $tanggal, $req->nilai, 'pelunasan');
+
+    if ($jenis == 'B') ModulTransaksi::logJurnal($this->user, $tanggal, '5', $req->nilai, 'pelunasan_hutang');
+    else ModulTransaksi::logJurnal($this->user, $tanggal, '6', $req->nilai, 'pelunasan_piutang');
+
     return $this->response->data($transaksi->pelunasan()->find($pelunasan->id));
   }
 }

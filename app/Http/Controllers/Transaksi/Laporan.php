@@ -223,6 +223,13 @@ class Laporan extends Controller {
     ModulTransaksi::keuangan($this->user, ['lp_bulan_id' => $laporan->id], 'B', $tanggal, $beban_angkut->operasional, 'beban_operasional');
     ModulTransaksi::keuangan($this->user, ['lp_bulan_id' => $laporan->id], 'B', $tanggal, $beban_angkut->pajak, 'beban_pajak');
 
+    ModulTransaksi::logJurnal($this->user, $tanggal, '9.1', $depresiasi->bangunan, 'depresiasi_bangunan');
+    ModulTransaksi::logJurnal($this->user, $tanggal, '9.2', $depresiasi->kendaraan, 'depresiasi_kendaraan');
+    ModulTransaksi::logJurnal($this->user, $tanggal, '9.3', $depresiasi->peralatan, 'depresiasi_peralatan');
+    ModulTransaksi::logJurnal($this->user, $tanggal, '10', $beban_angkut->gaji, 'beban_gaji');
+    ModulTransaksi::logJurnal($this->user, $tanggal, '11', $beban_angkut->operasional, 'beban_operasional');
+    ModulTransaksi::logJurnal($this->user, $tanggal, '12', $beban_angkut->pajak, 'beban_pajak');
+
     return $this->response->data($this->user->lpBulan()->find($laporan->id));
   }
 

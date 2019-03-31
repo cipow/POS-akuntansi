@@ -53,17 +53,33 @@ class Profil extends Controller {
     if ($invalid = $this->response->validate($req, ['prive' => 'required|integer', 'keterangan' => 'string'])) return $invalid;
     if ($this->user->kas == 0) return $this->response->messageError('Kas kosong', 403);
     if ($this->user->kas < $req->prive) return $this->response->messageError('Uang Kas kurang', 403);
+    $tanggal = \Carbon\Carbon::now();
     $sisa_kas = $this->user->kas - $req->prive;
     $this->user->update(['kas' => $sisa_kas]);
     $this->user->keuangan()->create([
       'nilai' => $req->prive,
       'jenis' => 'keluar',
-      'tanggal' => \Carbon\Carbon::now(),
+      'tanggal' => $tanggal,
       'kategori' => 'prive',
       'saldo_kas' => $sisa_kas,
       'keterangan' => $req->keterangan
     ]);
+
+    $this->user->jurnal()->create([
+      'tanggal' => $tanggal,
+      'kode' => '7',
+      'nilai' => $req->prive,
+      'keterangan' => 'prive'
+    ]);
     return $this->response->messageSuccess('Prive Berhasil', 200);
+  }
+
+  public function jurnal(Request $req) {
+    if ($invalid = $this->response->validate($req, ['tanggal' => 'date'])) return $invalid;
+    $jurnal = $this->user->jurnal();
+    if ($req->filled('tanggal')) $jurnal->bulanTahun(new \Carbon\Carbon($req->tanggal));
+    $jurnal->orderBy('tanggal', 'desc')->orderBy('id', 'desc');
+    return $this->response->data($jurnal->get());
   }
 
 }

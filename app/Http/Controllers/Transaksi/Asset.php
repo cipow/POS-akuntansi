@@ -39,6 +39,24 @@ class Asset extends Controller {
       $tanggalUmur->addMonth($req->umur);
     }
 
+    switch ($req->kategori) {
+      case 'tanah':
+        $kodeLanjut = '1';
+        break;
+      case 'perlengkapan':
+        $kodeLanjut = '2';
+        break;
+      case 'bangunan':
+        $kodeLanjut = '3';
+        break;
+      case 'kendaraan':
+        $kodeLanjut = '4';
+        break;
+      case 'peralatan':
+        $kodeLanjut = '5';
+        break;
+    }
+
     $asset = $this->user->asset()->create([
       'nama' => $req->nama,
       'kategori' => $req->kategori,
@@ -51,7 +69,7 @@ class Asset extends Controller {
     ]);
 
     ModulTransaksi::keuangan($this->user, ['asset_id' => $asset->id], 'B', $tanggal, $req->nilai, 'asset');
-
+    ModulTransaksi::logJurnal($this->user, $tanggal, "8.$kodeLanjut", $req->nilai, "asset_$req->kategori");
     return $this->response->data($this->user->asset()->find($asset->id));
   }
 
