@@ -25,6 +25,7 @@ $router->group(['middleware' => 'jwt'], function($router) {
     $router->post('/prive', 'User\Profil@prive');
     $router->get('/keuangan', 'User\Profil@riwayatKeuangan');
     $router->get('/jurnal', 'User\Profil@jurnal');
+    $router->get('/jurnalTanggal', 'User\Profil@tanggalJurnal');
     $router->get('/keuangan/{id}', 'User\Profil@detailKeuangan');
   });
 

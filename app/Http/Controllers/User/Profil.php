@@ -82,4 +82,10 @@ class Profil extends Controller {
     return $this->response->data($jurnal->get());
   }
 
+  public function tanggalJurnal() {
+    $tanggal = $this->user->jurnal()->select(\DB::raw("CONCAT(YEAR(tanggal), '-', MONTH(tanggal)+1) as tanggalan"))
+              ->groupBy('tanggalan')->orderBy('tanggalan', 'desc')->get();
+    return $this->response->data($tanggal->pluck('tanggalan')->toArray());
+  }
+
 }
