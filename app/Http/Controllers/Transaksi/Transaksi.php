@@ -148,7 +148,7 @@ class Transaksi extends Controller {
     else $req->merge(['kredit' => $req->nilai]);
     $req->merge(['saldo' => $saldo, 'tanggal' => $tanggal]);
 
-    $pelunasan = $transaksi->pelunasan()->create($req->except('user'));
+    $pelunasan = $transaksi->pelunasan()->create($req->except('user', 'tgl'));
     $transaksi->update(['ph_utang' => $saldo]);
 
     $jenis = ($transaksi->jenis == 'pembelian') ? 'B':'J';

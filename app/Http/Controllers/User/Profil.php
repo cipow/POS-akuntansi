@@ -79,10 +79,15 @@ class Profil extends Controller {
   }
 
   public function jurnal(Request $req) {
-    if ($invalid = $this->response->validate($req, ['tanggal' => 'date'])) return $invalid;
+    if ($invalid = $this->response->validate($req, ['tanggal' => 'date', 'latest' => 'integer|in:0,1'])) return $invalid;
     $jurnal = $this->user->jurnal();
     if ($req->filled('tanggal')) $jurnal->bulanTahun(new \Carbon\Carbon($req->tanggal));
-    $jurnal->orderBy('tanggal', 'desc')->orderBy('id', 'desc');
+    if ($req->filled('latest')) {
+      if ($req->latest) $jurnal->orderBy('tanggal', 'desc');
+      else $jurnal->orderBy('tanggal', 'asc');
+    }
+    else $jurnal->orderBy('tanggal', 'desc');
+    $jurnal->orderBy('id', 'desc');
     return $this->response->data($jurnal->get());
   }
 
