@@ -32,8 +32,9 @@ class Barang extends Controller {
     try {
       $barang_sama = $this->user->barang()->where('kode', $req->kode)->first();
       if ($barang_sama) return $this->response->messageError('Kode sudah digunakan', 403);
-
-      $req->merge(['tanggal' => Carbon::now()]);
+      if ($req->filled('tgl')) $tanggal = new Carbon($req->tgl);
+      else $tanggal = Carbon::now();
+      $req->merge(['tanggal' => $tanggal]);
       $barang = $this->user->barang()->create($req->all());
       return $this->response->data($this->user->barang()->find($barang->id));
     } catch (Exception $e) {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 
 class Profil extends Controller {
 
@@ -25,11 +26,13 @@ class Profil extends Controller {
   public function modalAwal(Request $req) {
     if ($invalid = $this->response->validate($req, ['modal' => 'required|integer'])) return $invalid;
     if ($this->user->modal > 0) return $this->response->messageError('Sudah Input Modal', 403);
+    if ($req->filled('tgl')) $tanggal = new Carbon($req->tgl);
+    else $tanggal = Carbon::now();
     $this->user->update(['modal' => $req->modal, 'kas' => $req->modal]);
     $this->user->keuangan()->create([
       'nilai' => $req->modal,
       'jenis' => 'masuk',
-      'tanggal' => \Carbon\Carbon::now(),
+      'tanggal' => $tanggal,
       'kategori' => 'modal',
       'saldo_kas' => $req->modal,
       'keterangan' => 'Modal Awal'
@@ -53,7 +56,8 @@ class Profil extends Controller {
     if ($invalid = $this->response->validate($req, ['prive' => 'required|integer', 'keterangan' => 'string'])) return $invalid;
     if ($this->user->kas == 0) return $this->response->messageError('Kas kosong', 403);
     if ($this->user->kas < $req->prive) return $this->response->messageError('Uang Kas kurang', 403);
-    $tanggal = \Carbon\Carbon::now();
+    if ($req->filled('tgl')) $tanggal = new Carbon($req->tgl);
+    else $tanggal = Carbon::now();
     $sisa_kas = $this->user->kas - $req->prive;
     $this->user->update(['kas' => $sisa_kas]);
     $this->user->keuangan()->create([

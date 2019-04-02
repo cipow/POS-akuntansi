@@ -68,7 +68,8 @@ class Transaksi extends Controller {
       return $this->response->messageError("$tipeUser tidak ada", 404);
     }
 
-    $tanggal = Carbon::now();
+    if ($req->filled('tgl')) $tanggal = new Carbon($req->tgl);
+    else $tanggal = Carbon::now();
     $transaksi = ModulTransaksi::buatTransaksi($jenis, $req, $tanggal);
     $total = ModulTransaksi::totalTransaksiBarang($this->user, $jenis, $transaksi->id, $req->barang);
     $hutang = $total;
@@ -140,7 +141,8 @@ class Transaksi extends Controller {
     if ($transaksi->ph_utang == 0) return $this->response->messageError('Sudah tidak ada utang', 403);
     if ($transaksi->ph_utang < $req->nilai) return $this->response->messageError('Kelebihan nilai', 403);
 
-    $tanggal = Carbon::now();
+    if ($req->filled('tgl')) $tanggal = new Carbon($req->tgl);
+    else $tanggal = Carbon::now();
     $saldo = $transaksi->ph_utang - $req->nilai;
     if ($transaksi->jenis == 'pembelian') $req->merge(['debit' => $req->nilai]);
     else $req->merge(['kredit' => $req->nilai]);

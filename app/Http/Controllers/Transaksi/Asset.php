@@ -28,7 +28,8 @@ class Asset extends Controller {
 
   public function tambah(Request $req) {
     if ($invalid = $this->response->validate($req, $this->ruleAsset)) return $invalid;
-    $tanggal = Carbon::now();
+    if ($req->filled('tgl')) $tanggal = new Carbon($req->tgl);
+    else $tanggal = Carbon::now();
     if ($req->kategori == 'tanah' || $req->kategori == 'perlengkapan') {
       $tanggalUmur = NULL;
       $nilaiPenyusutan = 0;
