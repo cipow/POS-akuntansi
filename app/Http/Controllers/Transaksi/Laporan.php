@@ -198,7 +198,8 @@ class Laporan extends Controller {
     $beban = $beban + $depresiasi->bangunan + $depresiasi->kendaraan + $depresiasi->peralatan;
     $laba_bersih = $laba_kotor - $beban;
 
-    $tanggal = Carbon::now();
+    if ($req->filled('tgl')) $tanggal = new Carbon($req->tgl);
+    else $tanggal = Carbon::now();
 
     $laporan = $this->user->lpBulan()->create([
       'tanggal' => $tanggal,
