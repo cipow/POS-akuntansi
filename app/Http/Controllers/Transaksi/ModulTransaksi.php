@@ -24,6 +24,7 @@ class ModulTransaksi extends Controller {
 
   public static function totalTransaksiBarang($user, $jenis, $transaksi_id, $barangs) {
     $total = 0;
+    $hpp = 0;
     foreach ($barangs as $barang) {
       $barang = (object) $barang;
       $dataBarang = $user->barang()->find($barang->id);
@@ -34,6 +35,11 @@ class ModulTransaksi extends Controller {
           else $harga_rata = ceil((($dataBarang->stok * $dataBarang->harga_rata) + ($barang->jumlah * $barang->harga)) / ($dataBarang->stok + $barang->jumlah));
         }
         else $harga_rata = $dataBarang->harga_rata;
+
+        if ($jenis == 'J') {
+          $sblmHpp = $harga_rata * $barang->jumlah;
+          $hpp = $hpp + $sblmHpp;
+        }
 
         $total_harga_barang = $barang->harga * $barang->jumlah;
         $saldo_kg = ($jenis == 'B') ? $dataBarang->stok + $barang->jumlah: $dataBarang->stok - $barang->jumlah;
@@ -53,7 +59,10 @@ class ModulTransaksi extends Controller {
       }
     }
 
-    return $total;
+    return [
+      'total' => $total,
+      'hpp' => $hpp
+    ];
   }
 
   public static function keuangan($user, $relasi, $jenis, $tanggal, $nilai, $kategori, $keterangan = "") {

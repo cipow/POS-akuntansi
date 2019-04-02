@@ -72,9 +72,9 @@ class Transaksi extends Controller {
     else $tanggal = Carbon::now();
     $transaksi = ModulTransaksi::buatTransaksi($jenis, $req, $tanggal);
     $total = ModulTransaksi::totalTransaksiBarang($this->user, $jenis, $transaksi->id, $req->barang);
-    $hutang = $total;
+    $hutang = $total['total'];
 
-    if ($total == 0) {
+    if ($total['total'] == 0) {
       $transaksi->delete();
       return $this->response->messageError('Total transaksi 0, transaksi dihapus.', 403);
     }
@@ -82,17 +82,17 @@ class Transaksi extends Controller {
     if ($req->lunas) {
       $dataPelunasan = [
         'tanggal' => $tanggal,
-        'nilai' => $total
+        'nilai' => $total['total']
       ];
-      if ($jenis == 'B') $dataPelunasan['debit'] = $total;
-      else $dataPelunasan['kredit'] = $total;
+      if ($jenis == 'B') $dataPelunasan['debit'] = $total['total'];
+      else $dataPelunasan['kredit'] = $total['total'];
       $pelunasan = $transaksi->pelunasan()->create($dataPelunasan);
       $hutang = 0;
-      ModulTransaksi::keuangan($this->user, ['pelunasan_id' => $pelunasan->id], $jenis, $tanggal, $total, 'pelunasan');
+      ModulTransaksi::keuangan($this->user, ['pelunasan_id' => $pelunasan->id], $jenis, $tanggal, $total['total'], 'pelunasan');
     }
 
     $dataTambahan = [
-      'total' => $total,
+      'total' => $total['total'],
       'ph_utang' => $hutang,
       'beban_angkut' => $req->beban_angkut
     ];
@@ -111,14 +111,14 @@ class Transaksi extends Controller {
 
   private function logTransaksi($tanggal, $jenis, $lunas, $total, $beban) {
     if ($jenis == 'B') {
-      ModulTransaksi::logJurnal($this->user, $tanggal, '1', $total, 'pembelian');
+      ModulTransaksi::logJurnal($this->user, $tanggal, '1', $total['total'], 'pembelian');
       ModulTransaksi::logJurnal($this->user, $tanggal, '3', $beban, 'beban_pembelian');
-      if ($lunas) ModulTransaksi::logJurnal($this->user, $tanggal, '5', $total, 'pelunasan_hutang');
+      if ($lunas) ModulTransaksi::logJurnal($this->user, $tanggal, '5', $total['total'], 'pelunasan_hutang');
     } else {
-      ModulTransaksi::logJurnal($this->user, $tanggal, '2', $total, 'penjualan');
-      ModulTransaksi::logJurnal($this->user, $tanggal, '2.1', $total, 'penjualan');
+      ModulTransaksi::logJurnal($this->user, $tanggal, '2', $total['total'], 'penjualan');
+      ModulTransaksi::logJurnal($this->user, $tanggal, '2.1', $total['hpp'], 'penjualan');
       ModulTransaksi::logJurnal($this->user, $tanggal, '4', $beban, 'beban_penjualan');
-      if ($lunas) ModulTransaksi::logJurnal($this->user, $tanggal, '6', $total, 'pelunasan_piutang');
+      if ($lunas) ModulTransaksi::logJurnal($this->user, $tanggal, '6', $total['total'], 'pelunasan_piutang');
     }
   }
 
