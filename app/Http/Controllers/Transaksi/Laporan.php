@@ -161,9 +161,9 @@ class Laporan extends Controller {
     ];
 
     $depresiasi = [
-      'bangunan' => (int) $this->user->asset()->laporanKas($tanggal, 'bangunan')->sum('nilai_sekarang'),
-      'kendaraan' => (int) $this->user->asset()->laporanKas($tanggal, 'kendaraan')->sum('nilai_sekarang'),
-      'peralatan' => (int) $this->user->asset()->laporanKas($tanggal, 'peralatan')->sum('nilai_sekarang')
+      'bangunan' => (int) $this->user->asset()->belumKadaluarsa()->kategori('bangunan')->sum('nilai_sekarang'),
+      'kendaraan' => (int) $this->user->asset()->belumKadaluarsa()->kategori('kendaraan')->sum('nilai_sekarang'),
+      'peralatan' => (int) $this->user->asset()->belumKadaluarsa()->kategori('peralatan')->sum('nilai_sekarang')
     ];
 
     $laporan_bulanan = $this->user->lpBulan()->whereYear('tanggal_laporan', $tanggal->year)->whereMonth('tanggal_laporan', $tanggal->month)->first();
